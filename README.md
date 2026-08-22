@@ -57,6 +57,15 @@ may be better for them.
   [Sunshine](https://app.lizardbyte.dev/Sunshine/) or one of its forks
   (e.g. [Apollo](https://github.com/ClassicOldSong/Apollo)).
 
+
+## Screenshots
+
+| <img src="docs/screenshots/screenshot-1.png"/>                                    | <img src="docs/screenshots/screenshot-2.png"/>                                                  |
+|:---|:---|
+| <img src="docs/screenshots/screenshot-3.png"/>   | <img src="docs/screenshots/screenshot-4.png"/>               |                                |
+| <img src="docs/screenshots/screenshot-5.png"/> | <img src="docs/screenshots/screenshot-6.png"/> |
+| <img src="docs/screenshots/screenshot-7.png"/>    | <img src="docs/screenshots/screenshot-8.png"/>    			   |
+
 ## Building
 
 Build requirements:
