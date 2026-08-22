@@ -71,6 +71,7 @@ Build requirements:
 # Generates the project, builds, and ad-hoc
 # signs the app so it runs on the Mac.
 ./bootstrap.sh   # add --test for the full AsteriaKit suite, --release for optimized
+./bootstrap.sh --project   # only generate the Xcode project, skip build/sign/test
 ```
 
 Signing is ad-hoc ("Sign to Run Locally"), so no Apple Developer account is
