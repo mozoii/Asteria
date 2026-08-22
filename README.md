@@ -32,8 +32,8 @@ may be better for them.
   displays.
 - **Input** - Keyboard and mouse support with two modes: Desktop and Game.
   Desktop optimizes the pointer for general use like browsing or remote
-  desktop work, while Game uses Apple's Game Controller framework. For
-  gamepads you can choose XInput or PlayStation emulation, both with rumble.
+  desktop work, while Game uses Apple's Game Controller framework. Gamepads
+  are supported, with rumble.
 - **In-stream menu** - An overlay during streaming for quick actions like
   ending the stream, going fullscreen, muting audio, or switching pointer
   modes, without leaving your stream.
