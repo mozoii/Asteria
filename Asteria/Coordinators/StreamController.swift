@@ -107,6 +107,7 @@ final class StreamController {
     private let inputPreferences: InputPreferences
     private let overlayPreferences: OverlayPreferences
     private var localPowerTelemetry = LocalPowerTelemetry()
+    private var screenSleepGuard = ScreenSleepGuard()
     private let identities: ClientIdentityVault
     private let clipboard: any ClipboardSource
 
@@ -205,6 +206,7 @@ final class StreamController {
 
     /// Build the pinned transport + wire config, open the session, and report the outcome back as an event.
     private func beginAttempt(forceLaunch: Bool) async {
+        screenSleepGuard.start()
         powerUsageMeter.reset()
         localPowerTelemetry.reset()
         lastSnapshotDecodedFrames = 0
@@ -330,6 +332,7 @@ final class StreamController {
     /// running). Idempotent via capture-before-await; teardown ordering and the 10 s bound live in `LiveStreamSession.stop`.
     private func teardownSession() async {
         stopInactiveMuting()
+        screenSleepGuard.end()
         guard let session = streamSession else { return }
         streamSession = nil
         let tele = await session.telemetry

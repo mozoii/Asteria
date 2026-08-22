@@ -24,6 +24,7 @@
 		AEE72F644C38DEF069857F57 /* HostPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07F1F39D9B929E724CEE9DF4 /* HostPickerView.swift */; };
 		B5B6CD55169BFB29EE73682E /* AsteriaTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77EABE75FC76F9DB3194A712 /* AsteriaTheme.swift */; };
 		BAC55679A60F6DA3FFBCCF6B /* AppLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6DCEE30CC68B464BC44E37 /* AppLibraryStore.swift */; };
+		BE1F7BCB4A742D7C1AB71F4C /* ScreenSleepGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4473041C7FE96BD362197A00 /* ScreenSleepGuard.swift */; };
 		C8BB9A6A69134049D1B7EBB5 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6533F3CD6D1F4AACE2E890AA /* RootView.swift */; };
 		C99413E1AFEB0CCDE23905C7 /* WhatsNewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A483E8DFC5BDB7B011F53979 /* WhatsNewSheet.swift */; };
 		D50D72CD6F4BCBF5928F921B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7D20C636BB1E05147BE3DC04 /* Assets.xcassets */; };
@@ -42,6 +43,7 @@
 		2735952FED31C2D57195E174 /* StarfieldBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarfieldBackground.swift; sourceTree = "<group>"; };
 		33EA425C50D51BC1E8B1C7F8 /* Asteria.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Asteria.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		37FD5116A2F382DD19DCA36D /* SettingsEditor+AppKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsEditor+AppKit.swift"; sourceTree = "<group>"; };
+		4473041C7FE96BD362197A00 /* ScreenSleepGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSleepGuard.swift; sourceTree = "<group>"; };
 		47699D85212AC39795785F0A /* StreamContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamContainerView.swift; sourceTree = "<group>"; };
 		58853E98AE05592059B547F5 /* HostIdentityMetadataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostIdentityMetadataView.swift; sourceTree = "<group>"; };
 		59D229068AEEF928D70BBECF /* StreamController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamController.swift; sourceTree = "<group>"; };
@@ -146,6 +148,7 @@
 				C4ADCC5240706D14C9EFC63C /* ChordRecorder.swift */,
 				7848330301DB2844D4B6F2E8 /* ControllerNavReader.swift */,
 				67A616CC2A15D52F664EDD81 /* LocalPowerTelemetry.swift */,
+				4473041C7FE96BD362197A00 /* ScreenSleepGuard.swift */,
 				7748887CE2631DE4831BE3A3 /* StreamInputCapture.swift */,
 				9CB01CE8598C0B7AD6AED59D /* SystemClipboard.swift */,
 			);
@@ -268,6 +271,7 @@
 				9713B135F1151B1C636E8AB6 /* PairingCoordinator.swift in Sources */,
 				AC521834199F08CA2E3AA34D /* PairingScreenView.swift in Sources */,
 				C8BB9A6A69134049D1B7EBB5 /* RootView.swift in Sources */,
+				BE1F7BCB4A742D7C1AB71F4C /* ScreenSleepGuard.swift in Sources */,
 				D8A4799D42FDB997DDD04557 /* SettingsEditor+AppKit.swift in Sources */,
 				DEA91FFEE3C3C35EEB01041F /* SettingsView.swift in Sources */,
 				24245DC0CF32EAAC420C158B /* StarfieldBackground.swift in Sources */,
