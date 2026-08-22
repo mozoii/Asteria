@@ -55,9 +55,7 @@ fix(pairing): resolve correct TLS identity by fingerprint
 feat(video): add MetalFX upscaling toggle
 ```
 
-Keep the body brief and only when context is needed. Do not add AI
-attribution footers ("Generated with …", "Co-Authored-By: …") to commits;
-commit messages contain only the human-authored message.
+Keep the body brief and only when context is needed.
 
 ## Pull requests
 
