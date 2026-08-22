@@ -181,7 +181,7 @@ struct HostDetailView: View {
     var body: some View {
         Group {
             if let coordinator {
-                PairingView(coordinator: coordinator) { handleClose() }
+                PairingScreenView(coordinator: coordinator) { handleClose() }
             } else if host.isPaired {
                 PairedHostView(host: host, refreshToken: refreshToken,
                                onOpenSettings: callbacks.onOpenSettings,
@@ -296,7 +296,6 @@ struct OnboardingView: View {
     @State private var showManual = false
     @State private var manualText = ""
     @State private var coordinator: PairingCoordinator?
-    @State private var pin = ""
 
     @State private var recommended: StreamSettings?
     @State private var reco: RecoSummary?
@@ -385,7 +384,6 @@ struct OnboardingView: View {
 
     private func runPairing() async {
         guard let target else { return }
-        pin = ""
         let coord = PairingCoordinator(
             host: target, deviceName: "Asteria"
         ) { updated in
@@ -394,8 +392,6 @@ struct OnboardingView: View {
         coordinator = coord
         await coord.start()       // leaves phase at .paired; the user clicks Continue to advance
     }
-
-    private func retryPairing() { Task { await coordinator?.start() } }
 
     private func runTest() async {
         reco = nil
@@ -570,18 +566,7 @@ struct OnboardingView: View {
     private var pairStep: some View {
         VStack(spacing: 0) {
             Spacer()
-            Text("Pair with \(target?.displayName ?? "your PC")").font(.system(size: 22, weight: .semibold))
-                .padding(.bottom, 24)
-            dial
-            HStack(spacing: 6) {
-                Text("Enter this code in Sunshine at")
-                Text("\(target?.address ?? "localhost"):47990").font(.system(size: 12, design: .monospaced))
-                    .padding(.horizontal, 7).padding(.vertical, 2)
-                    .background(AsteriaTheme.surface, in: .rect(cornerRadius: 6))
-                Text("→ PIN tab")
-            }
-            .font(.caption).foregroundStyle(.secondary).padding(.top, 24)
-            pairStatus.padding(.top, 18)
+            PairingDial(coordinator: coordinator)
             Spacer()
             footer {
                 primaryButton("Continue →") { advance(to: .test) }
@@ -589,62 +574,6 @@ struct OnboardingView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .onChange(of: phaseKey) { _, _ in
-            if case let .awaitingPIN(p, _)? = coordinator?.phase { pin = p }
-        }
-    }
-
-    private var dial: some View {
-        let phase = coordinator?.phase ?? .preparing
-        let paired = isPaired
-        let failed = { if case .failed = phase { return true }; return false }()
-        let verifying = { if case .verifying = phase { return true }; return false }()
-        let active = !paired && !failed
-        let arcColor: Color = paired ? .green : (failed ? Color.white.opacity(0.12) : AsteriaTheme.accent)
-        let labelText = failed ? "Code expired" : (paired ? "Paired" : "Pairing PIN")
-        let value = pin.isEmpty ? "••••" : pin
-        return ZStack {
-            Circle().stroke(Color.white.opacity(0.08), lineWidth: 4)
-            if active {
-                TimelineView(.animation) { timeline in
-                    let t = timeline.date.timeIntervalSinceReferenceDate
-                    Circle().trim(from: 0, to: 0.28)
-                        .stroke(arcColor, style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                        .rotationEffect(.degrees(t.truncatingRemainder(dividingBy: 3) / 3 * 360))
-                }
-            } else {
-                Circle().stroke(arcColor, style: StrokeStyle(lineWidth: 4, lineCap: .round))
-            }
-            VStack(spacing: 7) {
-                HStack(spacing: 5) {
-                    if active { Image(systemName: "lock").font(.system(size: 9, weight: .semibold)) }
-                    Text(labelText.uppercased()).tracking(1.5)
-                }
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(failed ? Color.red.opacity(0.85) : (paired ? .green : .secondary))
-                Text(value).font(.system(size: 40, weight: .regular, design: .monospaced))
-                    .foregroundStyle(.white).opacity(verifying ? 0.5 : 1)
-            }
-        }
-        .frame(width: 220, height: 220)
-    }
-
-    @ViewBuilder private var pairStatus: some View {
-        switch coordinator?.phase {
-        case .verifying:
-            statusRow(color: AsteriaTheme.accent, systemImage: nil,
-                      text: "Verifying with \(target?.displayName ?? "your PC")…", showSpinner: true)
-        case .paired:
-            statusRow(color: .green, systemImage: "checkmark.circle.fill", text: "Paired")
-        case .failed(let message):
-            VStack(spacing: 12) {
-                statusRow(color: .red, systemImage: "xmark.circle.fill", text: message)
-                primaryButton("Get a new PIN") { retryPairing() }
-            }
-        default:
-            statusRow(color: .secondary, systemImage: nil, text: "Waiting for you to enter this PIN…",
-                      showSpinner: true)
-        }
     }
 
     private var testStep: some View {
@@ -862,17 +791,6 @@ struct OnboardingView: View {
     }
 
     private var isPaired: Bool { if case .paired = coordinator?.phase { return true }; return false }
-
-    private var phaseKey: String {
-        switch coordinator?.phase {
-        case .preparing: return "preparing"
-        case .awaitingPIN(let p, _): return "pin:\(p)"
-        case .verifying: return "verifying"
-        case .paired: return "paired"
-        case .failed(let m): return "failed:\(m)"
-        case nil: return "nil"
-        }
-    }
 
     private var apolloNotice: AttributedString {
         var text = AttributedString("Try out ")

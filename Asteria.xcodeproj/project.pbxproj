@@ -16,11 +16,11 @@
 		40F33984B344862753B10D84 /* HostIdentityMetadataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58853E98AE05592059B547F5 /* HostIdentityMetadataView.swift */; };
 		49CF7309D8FFFA7C4B908069 /* SystemClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CB01CE8598C0B7AD6AED59D /* SystemClipboard.swift */; };
 		4E12F80830F801124CB9BF55 /* StreamContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47699D85212AC39795785F0A /* StreamContainerView.swift */; };
-		6486153CDD45515BF14F795A /* PairingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F2ACF5CD6C8F9CE41E3D07 /* PairingView.swift */; };
 		6FAB2D01564826EA246C1048 /* AsteriaKit in Frameworks */ = {isa = PBXBuildFile; productRef = 9E3A0F78F3D5BA08F8E00EF1 /* AsteriaKit */; };
 		96D256134386BFE0C36B709E /* AsteriaIdentityVault.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0FA30BDEC52D947B13AAAC6 /* AsteriaIdentityVault.swift */; };
 		9713B135F1151B1C636E8AB6 /* PairingCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFFB8213244FE19EC85556FA /* PairingCoordinator.swift */; };
 		A992D5567F10E3F1F9D38792 /* ChordRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4ADCC5240706D14C9EFC63C /* ChordRecorder.swift */; };
+		AC521834199F08CA2E3AA34D /* PairingScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97169A5E0B5686095B68AC5 /* PairingScreenView.swift */; };
 		AEE72F644C38DEF069857F57 /* HostPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07F1F39D9B929E724CEE9DF4 /* HostPickerView.swift */; };
 		B5B6CD55169BFB29EE73682E /* AsteriaTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77EABE75FC76F9DB3194A712 /* AsteriaTheme.swift */; };
 		BAC55679A60F6DA3FFBCCF6B /* AppLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6DCEE30CC68B464BC44E37 /* AppLibraryStore.swift */; };
@@ -57,7 +57,7 @@
 		A4B04A5747A675D12CB961AF /* Asteria.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Asteria.entitlements; sourceTree = "<group>"; };
 		AF5BB2CA1F4F0A071EDF52D2 /* AppLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLibraryView.swift; sourceTree = "<group>"; };
 		B0FA30BDEC52D947B13AAAC6 /* AsteriaIdentityVault.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsteriaIdentityVault.swift; sourceTree = "<group>"; };
-		B1F2ACF5CD6C8F9CE41E3D07 /* PairingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingView.swift; sourceTree = "<group>"; };
+		B97169A5E0B5686095B68AC5 /* PairingScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingScreenView.swift; sourceTree = "<group>"; };
 		BAC01ABAAFB0F2949A9B31A1 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		BFFB8213244FE19EC85556FA /* PairingCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingCoordinator.swift; sourceTree = "<group>"; };
 		C20AE07BF887DAA99B503437 /* AsteriaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsteriaApp.swift; sourceTree = "<group>"; };
@@ -127,7 +127,7 @@
 				AF5BB2CA1F4F0A071EDF52D2 /* AppLibraryView.swift */,
 				58853E98AE05592059B547F5 /* HostIdentityMetadataView.swift */,
 				07F1F39D9B929E724CEE9DF4 /* HostPickerView.swift */,
-				B1F2ACF5CD6C8F9CE41E3D07 /* PairingView.swift */,
+				B97169A5E0B5686095B68AC5 /* PairingScreenView.swift */,
 				6533F3CD6D1F4AACE2E890AA /* RootView.swift */,
 				BAC01ABAAFB0F2949A9B31A1 /* SettingsView.swift */,
 				2735952FED31C2D57195E174 /* StarfieldBackground.swift */,
@@ -266,7 +266,7 @@
 				AEE72F644C38DEF069857F57 /* HostPickerView.swift in Sources */,
 				351661C08DDF158A3C2C76D9 /* LocalPowerTelemetry.swift in Sources */,
 				9713B135F1151B1C636E8AB6 /* PairingCoordinator.swift in Sources */,
-				6486153CDD45515BF14F795A /* PairingView.swift in Sources */,
+				AC521834199F08CA2E3AA34D /* PairingScreenView.swift in Sources */,
 				C8BB9A6A69134049D1B7EBB5 /* RootView.swift in Sources */,
 				D8A4799D42FDB997DDD04557 /* SettingsEditor+AppKit.swift in Sources */,
 				DEA91FFEE3C3C35EEB01041F /* SettingsView.swift in Sources */,
