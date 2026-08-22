@@ -109,7 +109,8 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
 
 ## Contributing
 
-Contributions are welcome and are accepted under the project's GPLv3 license
+Contributions are welcome! See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the
+full guide. Contributions are accepted under the project's GPLv3 license
 (see `LICENSE`).
 
 - **TDD-first** - The `AsteriaKit` core is test-driven: red → green → refactor.
