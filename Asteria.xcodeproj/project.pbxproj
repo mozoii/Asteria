@@ -1,0 +1,494 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		03F028B39A939788D1084125 /* StreamController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59D229068AEEF928D70BBECF /* StreamController.swift */; };
+		24245DC0CF32EAAC420C158B /* StarfieldBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2735952FED31C2D57195E174 /* StarfieldBackground.swift */; };
+		351661C08DDF158A3C2C76D9 /* LocalPowerTelemetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67A616CC2A15D52F664EDD81 /* LocalPowerTelemetry.swift */; };
+		387D805507E350D901192C3D /* ThirdPartyLicenses.md in Resources */ = {isa = PBXBuildFile; fileRef = 5D4F533C0BEC0D116FC6BB2E /* ThirdPartyLicenses.md */; };
+		3BC6F3A8B6F93BCF1E87CAEE /* StreamView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFC5ED649328032BA00611E3 /* StreamView.swift */; };
+		3BD172CEFAF048D9C22C8BDA /* AsteriaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20AE07BF887DAA99B503437 /* AsteriaApp.swift */; };
+		40F33984B344862753B10D84 /* HostIdentityMetadataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58853E98AE05592059B547F5 /* HostIdentityMetadataView.swift */; };
+		49CF7309D8FFFA7C4B908069 /* SystemClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CB01CE8598C0B7AD6AED59D /* SystemClipboard.swift */; };
+		4E12F80830F801124CB9BF55 /* StreamContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47699D85212AC39795785F0A /* StreamContainerView.swift */; };
+		6486153CDD45515BF14F795A /* PairingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F2ACF5CD6C8F9CE41E3D07 /* PairingView.swift */; };
+		6FAB2D01564826EA246C1048 /* AsteriaKit in Frameworks */ = {isa = PBXBuildFile; productRef = 9E3A0F78F3D5BA08F8E00EF1 /* AsteriaKit */; };
+		96D256134386BFE0C36B709E /* AsteriaIdentityVault.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0FA30BDEC52D947B13AAAC6 /* AsteriaIdentityVault.swift */; };
+		9713B135F1151B1C636E8AB6 /* PairingCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFFB8213244FE19EC85556FA /* PairingCoordinator.swift */; };
+		A992D5567F10E3F1F9D38792 /* ChordRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4ADCC5240706D14C9EFC63C /* ChordRecorder.swift */; };
+		AEE72F644C38DEF069857F57 /* HostPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07F1F39D9B929E724CEE9DF4 /* HostPickerView.swift */; };
+		B5B6CD55169BFB29EE73682E /* AsteriaTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77EABE75FC76F9DB3194A712 /* AsteriaTheme.swift */; };
+		BAC55679A60F6DA3FFBCCF6B /* AppLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6DCEE30CC68B464BC44E37 /* AppLibraryStore.swift */; };
+		C8BB9A6A69134049D1B7EBB5 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6533F3CD6D1F4AACE2E890AA /* RootView.swift */; };
+		C99413E1AFEB0CCDE23905C7 /* WhatsNewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A483E8DFC5BDB7B011F53979 /* WhatsNewSheet.swift */; };
+		D50D72CD6F4BCBF5928F921B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7D20C636BB1E05147BE3DC04 /* Assets.xcassets */; };
+		D8A4799D42FDB997DDD04557 /* SettingsEditor+AppKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37FD5116A2F382DD19DCA36D /* SettingsEditor+AppKit.swift */; };
+		DEA91FFEE3C3C35EEB01041F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAC01ABAAFB0F2949A9B31A1 /* SettingsView.swift */; };
+		E221AC1113FEFBBC2E20B9D2 /* ControllerNavReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7848330301DB2844D4B6F2E8 /* ControllerNavReader.swift */; };
+		E591A49B95D73F97843FD1A5 /* StreamInputCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7748887CE2631DE4831BE3A3 /* StreamInputCapture.swift */; };
+		F1C1BADBD245E1DD60C5CE6C /* AppLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF5BB2CA1F4F0A071EDF52D2 /* AppLibraryView.swift */; };
+		F73DD79DBBBE6ED6F2F39BBC /* HostListStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10114FD66CFC364D9F82802D /* HostListStore.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		07F1F39D9B929E724CEE9DF4 /* HostPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostPickerView.swift; sourceTree = "<group>"; };
+		0B6DCEE30CC68B464BC44E37 /* AppLibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLibraryStore.swift; sourceTree = "<group>"; };
+		10114FD66CFC364D9F82802D /* HostListStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostListStore.swift; sourceTree = "<group>"; };
+		2735952FED31C2D57195E174 /* StarfieldBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarfieldBackground.swift; sourceTree = "<group>"; };
+		33EA425C50D51BC1E8B1C7F8 /* Asteria.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Asteria.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		37FD5116A2F382DD19DCA36D /* SettingsEditor+AppKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsEditor+AppKit.swift"; sourceTree = "<group>"; };
+		47699D85212AC39795785F0A /* StreamContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamContainerView.swift; sourceTree = "<group>"; };
+		58853E98AE05592059B547F5 /* HostIdentityMetadataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostIdentityMetadataView.swift; sourceTree = "<group>"; };
+		59D229068AEEF928D70BBECF /* StreamController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamController.swift; sourceTree = "<group>"; };
+		5D4F533C0BEC0D116FC6BB2E /* ThirdPartyLicenses.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ThirdPartyLicenses.md; sourceTree = "<group>"; };
+		6533F3CD6D1F4AACE2E890AA /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		67A616CC2A15D52F664EDD81 /* LocalPowerTelemetry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalPowerTelemetry.swift; sourceTree = "<group>"; };
+		7748887CE2631DE4831BE3A3 /* StreamInputCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamInputCapture.swift; sourceTree = "<group>"; };
+		77EABE75FC76F9DB3194A712 /* AsteriaTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsteriaTheme.swift; sourceTree = "<group>"; };
+		7848330301DB2844D4B6F2E8 /* ControllerNavReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerNavReader.swift; sourceTree = "<group>"; };
+		7D20C636BB1E05147BE3DC04 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		9CB01CE8598C0B7AD6AED59D /* SystemClipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemClipboard.swift; sourceTree = "<group>"; };
+		A483E8DFC5BDB7B011F53979 /* WhatsNewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewSheet.swift; sourceTree = "<group>"; };
+		A4B04A5747A675D12CB961AF /* Asteria.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Asteria.entitlements; sourceTree = "<group>"; };
+		AF5BB2CA1F4F0A071EDF52D2 /* AppLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLibraryView.swift; sourceTree = "<group>"; };
+		B0FA30BDEC52D947B13AAAC6 /* AsteriaIdentityVault.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsteriaIdentityVault.swift; sourceTree = "<group>"; };
+		B1F2ACF5CD6C8F9CE41E3D07 /* PairingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingView.swift; sourceTree = "<group>"; };
+		BAC01ABAAFB0F2949A9B31A1 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		BFFB8213244FE19EC85556FA /* PairingCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingCoordinator.swift; sourceTree = "<group>"; };
+		C20AE07BF887DAA99B503437 /* AsteriaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsteriaApp.swift; sourceTree = "<group>"; };
+		C4ADCC5240706D14C9EFC63C /* ChordRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChordRecorder.swift; sourceTree = "<group>"; };
+		DFC5ED649328032BA00611E3 /* StreamView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamView.swift; sourceTree = "<group>"; };
+		E0A9CDE9E2E9A054FD1AF04D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F853885B516783179EDB1E25 /* AsteriaKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = AsteriaKit; path = AsteriaKit; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		4DF64D61354860CE182D4601 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6FAB2D01564826EA246C1048 /* AsteriaKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0B7BBE9642753C76DA0052CC = {
+			isa = PBXGroup;
+			children = (
+				7D20C636BB1E05147BE3DC04 /* Assets.xcassets */,
+				6FDEA14DF8B9017CE0892A64 /* Asteria */,
+				C37146B54D65484EA5A9E871 /* Packages */,
+				65299C011B8A03C27980123F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		43F81980B652AC413BC5338D /* Coordinators */ = {
+			isa = PBXGroup;
+			children = (
+				BFFB8213244FE19EC85556FA /* PairingCoordinator.swift */,
+				59D229068AEEF928D70BBECF /* StreamController.swift */,
+			);
+			path = Coordinators;
+			sourceTree = "<group>";
+		};
+		65299C011B8A03C27980123F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				33EA425C50D51BC1E8B1C7F8 /* Asteria.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6FDEA14DF8B9017CE0892A64 /* Asteria */ = {
+			isa = PBXGroup;
+			children = (
+				A4B04A5747A675D12CB961AF /* Asteria.entitlements */,
+				C20AE07BF887DAA99B503437 /* AsteriaApp.swift */,
+				E0A9CDE9E2E9A054FD1AF04D /* Info.plist */,
+				43F81980B652AC413BC5338D /* Coordinators */,
+				B259E450495DF69F4B30E1B0 /* Resources */,
+				814ABC1C5B4473F56E95AD70 /* Services */,
+				F764B9DCE2ED6A5622E04F17 /* Stores */,
+				70148D15BD93A58827390BE0 /* Views */,
+			);
+			path = Asteria;
+			sourceTree = "<group>";
+		};
+		70148D15BD93A58827390BE0 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				AF5BB2CA1F4F0A071EDF52D2 /* AppLibraryView.swift */,
+				58853E98AE05592059B547F5 /* HostIdentityMetadataView.swift */,
+				07F1F39D9B929E724CEE9DF4 /* HostPickerView.swift */,
+				B1F2ACF5CD6C8F9CE41E3D07 /* PairingView.swift */,
+				6533F3CD6D1F4AACE2E890AA /* RootView.swift */,
+				BAC01ABAAFB0F2949A9B31A1 /* SettingsView.swift */,
+				2735952FED31C2D57195E174 /* StarfieldBackground.swift */,
+				47699D85212AC39795785F0A /* StreamContainerView.swift */,
+				DFC5ED649328032BA00611E3 /* StreamView.swift */,
+				A483E8DFC5BDB7B011F53979 /* WhatsNewSheet.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		814ABC1C5B4473F56E95AD70 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				B0FA30BDEC52D947B13AAAC6 /* AsteriaIdentityVault.swift */,
+				77EABE75FC76F9DB3194A712 /* AsteriaTheme.swift */,
+				C4ADCC5240706D14C9EFC63C /* ChordRecorder.swift */,
+				7848330301DB2844D4B6F2E8 /* ControllerNavReader.swift */,
+				67A616CC2A15D52F664EDD81 /* LocalPowerTelemetry.swift */,
+				7748887CE2631DE4831BE3A3 /* StreamInputCapture.swift */,
+				9CB01CE8598C0B7AD6AED59D /* SystemClipboard.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		B259E450495DF69F4B30E1B0 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				5D4F533C0BEC0D116FC6BB2E /* ThirdPartyLicenses.md */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		C37146B54D65484EA5A9E871 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				F853885B516783179EDB1E25 /* AsteriaKit */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		F764B9DCE2ED6A5622E04F17 /* Stores */ = {
+			isa = PBXGroup;
+			children = (
+				0B6DCEE30CC68B464BC44E37 /* AppLibraryStore.swift */,
+				10114FD66CFC364D9F82802D /* HostListStore.swift */,
+				37FD5116A2F382DD19DCA36D /* SettingsEditor+AppKit.swift */,
+			);
+			path = Stores;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		EE1874DB36DF1E9B99D242F1 /* Asteria */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 91963960EFBF1877A72610A8 /* Build configuration list for PBXNativeTarget "Asteria" */;
+			buildPhases = (
+				DE4F039C9706D180C40B642E /* Sources */,
+				4C0C6650E295BBF32BE67185 /* Resources */,
+				4DF64D61354860CE182D4601 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Asteria;
+			packageProductDependencies = (
+				9E3A0F78F3D5BA08F8E00EF1 /* AsteriaKit */,
+			);
+			productName = Asteria;
+			productReference = 33EA425C50D51BC1E8B1C7F8 /* Asteria.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4384078D2ABD87EB1B2BD66E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					EE1874DB36DF1E9B99D242F1 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 277EA10A9DFAF0495F388CC8 /* Build configuration list for PBXProject "Asteria" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 0B7BBE9642753C76DA0052CC;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				0FAB86A8C9C3E65908BBB3E8 /* XCLocalSwiftPackageReference "AsteriaKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 65299C011B8A03C27980123F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				EE1874DB36DF1E9B99D242F1 /* Asteria */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4C0C6650E295BBF32BE67185 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D50D72CD6F4BCBF5928F921B /* Assets.xcassets in Resources */,
+				387D805507E350D901192C3D /* ThirdPartyLicenses.md in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		DE4F039C9706D180C40B642E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BAC55679A60F6DA3FFBCCF6B /* AppLibraryStore.swift in Sources */,
+				F1C1BADBD245E1DD60C5CE6C /* AppLibraryView.swift in Sources */,
+				3BD172CEFAF048D9C22C8BDA /* AsteriaApp.swift in Sources */,
+				96D256134386BFE0C36B709E /* AsteriaIdentityVault.swift in Sources */,
+				B5B6CD55169BFB29EE73682E /* AsteriaTheme.swift in Sources */,
+				A992D5567F10E3F1F9D38792 /* ChordRecorder.swift in Sources */,
+				E221AC1113FEFBBC2E20B9D2 /* ControllerNavReader.swift in Sources */,
+				40F33984B344862753B10D84 /* HostIdentityMetadataView.swift in Sources */,
+				F73DD79DBBBE6ED6F2F39BBC /* HostListStore.swift in Sources */,
+				AEE72F644C38DEF069857F57 /* HostPickerView.swift in Sources */,
+				351661C08DDF158A3C2C76D9 /* LocalPowerTelemetry.swift in Sources */,
+				9713B135F1151B1C636E8AB6 /* PairingCoordinator.swift in Sources */,
+				6486153CDD45515BF14F795A /* PairingView.swift in Sources */,
+				C8BB9A6A69134049D1B7EBB5 /* RootView.swift in Sources */,
+				D8A4799D42FDB997DDD04557 /* SettingsEditor+AppKit.swift in Sources */,
+				DEA91FFEE3C3C35EEB01041F /* SettingsView.swift in Sources */,
+				24245DC0CF32EAAC420C158B /* StarfieldBackground.swift in Sources */,
+				4E12F80830F801124CB9BF55 /* StreamContainerView.swift in Sources */,
+				03F028B39A939788D1084125 /* StreamController.swift in Sources */,
+				E591A49B95D73F97843FD1A5 /* StreamInputCapture.swift in Sources */,
+				3BC6F3A8B6F93BCF1E87CAEE /* StreamView.swift in Sources */,
+				49CF7309D8FFFA7C4B908069 /* SystemClipboard.swift in Sources */,
+				C99413E1AFEB0CCDE23905C7 /* WhatsNewSheet.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		5A6CD931496BF5561AB0B3DF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Asteria/Asteria.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Asteria/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Asteria;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.mozoii.playasteria;
+				PRODUCT_NAME = Asteria;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		93AC8571C62BB6FBF57A09EA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Asteria/Asteria.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Asteria/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Asteria;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.mozoii.playasteria.debug;
+				PRODUCT_NAME = Asteria;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		BB6DA6FE0E1042F8298DE63B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				EXCLUDED_ARCHS = x86_64;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		F40B6EBD5E19FCDFA3D7B72D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				EXCLUDED_ARCHS = x86_64;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		277EA10A9DFAF0495F388CC8 /* Build configuration list for PBXProject "Asteria" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F40B6EBD5E19FCDFA3D7B72D /* Debug */,
+				BB6DA6FE0E1042F8298DE63B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		91963960EFBF1877A72610A8 /* Build configuration list for PBXNativeTarget "Asteria" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				93AC8571C62BB6FBF57A09EA /* Debug */,
+				5A6CD931496BF5561AB0B3DF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		0FAB86A8C9C3E65908BBB3E8 /* XCLocalSwiftPackageReference "AsteriaKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = AsteriaKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9E3A0F78F3D5BA08F8E00EF1 /* AsteriaKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AsteriaKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 4384078D2ABD87EB1B2BD66E /* Project object */;
+}

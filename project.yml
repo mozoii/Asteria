@@ -1,0 +1,87 @@
+name: Asteria
+options:
+  bundleIdPrefix: io.github.mozoii
+  deploymentTarget:
+    macOS: "26.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+
+configs:
+  Debug: debug
+  Release: release
+
+settings:
+  base:
+    ARCHS: arm64
+    SUPPORTED_PLATFORMS: macosx
+    ONLY_ACTIVE_ARCH: "YES"
+    MACOSX_DEPLOYMENT_TARGET: "26.0"
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    CODE_SIGN_STYLE: Automatic
+    CODE_SIGN_IDENTITY: "-"
+    # Apple Silicon only, no Intel.
+    EXCLUDED_ARCHS: x86_64
+
+packages:
+  AsteriaKit:
+    path: AsteriaKit
+
+targets:
+  Asteria:
+    type: application
+    platform: macOS
+    sources:
+      - path: Asteria
+      - path: Assets.xcassets
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.mozoii.playasteria
+        PRODUCT_NAME: Asteria
+        INFOPLIST_FILE: Asteria/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Asteria/Asteria.entitlements
+        GENERATE_INFOPLIST_FILE: "NO"
+        ENABLE_HARDENED_RUNTIME: "YES"
+        INFOPLIST_KEY_CFBundleDisplayName: Asteria
+        INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.games"
+        # Release version shown in About and What's New; bump by hand when cutting a release.
+        MARKETING_VERSION: "0.1.0"
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
+      configs:
+        Debug:
+          PRODUCT_BUNDLE_IDENTIFIER: io.github.mozoii.playasteria.debug
+    dependencies:
+      - package: AsteriaKit
+        product: AsteriaKit
+
+# Shared schemes, committed so they survive `xcodegen generate`.
+schemes:
+  Debug:
+    build:
+      targets:
+        Asteria: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+    profile:
+      config: Debug
+    analyze:
+      config: Debug
+    archive:
+      config: Debug
+  Release:
+    build:
+      targets:
+        Asteria: all
+    run:
+      config: Release
+    test:
+      config: Release
+    profile:
+      config: Release
+    analyze:
+      config: Release
+    archive:
+      config: Release
+

@@ -1,0 +1,4 @@
+module CNanors {
+    umbrella header "CNanors.h"
+    export *
+}
