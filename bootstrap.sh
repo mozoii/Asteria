@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Bootstrap Asteria from a fresh clone: generate the project, build, and
 # ad-hoc sign the app so it launches on this Mac.
-# Usage: ./bootstrap.sh [--release] [--test]
+# Usage: ./bootstrap.sh [--release] [--test] [--project]
 set -euo pipefail
 
 DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
@@ -9,13 +9,15 @@ export DEVELOPER_DIR
 
 RELEASE=0
 TEST=0
+PROJECT_ONLY=0
 for flag in "$@"; do
     case "$flag" in
         --release) RELEASE=1 ;;
         --test) TEST=1 ;;
+        --project) PROJECT_ONLY=1 ;;
         *)
             echo "error: unknown option '$flag'" >&2
-            echo "usage: ./bootstrap.sh [--release] [--test]" >&2
+            echo "usage: ./bootstrap.sh [--release] [--test] [--project]" >&2
             exit 64
             ;;
     esac
@@ -38,6 +40,11 @@ cd "$(dirname "$0")"
 
 echo "==> Generating Xcode project"
 xcodegen generate
+
+if [ "$PROJECT_ONLY" -eq 1 ]; then
+    echo "==> Done. Xcode project generated."
+    exit 0
+fi
 
 SCHEME=Debug
 CONFIGURATION=Debug
