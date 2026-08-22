@@ -10,7 +10,7 @@ public enum HostSoftware: String, Codable, Equatable, Sendable {
 
     public var displayName: String {
         switch self {
-        case .sunshineCompatible: "Sunshine-compatible"
+        case .sunshineCompatible: "Sunshine"
         case .apolloFamily: "Apollo / Vibepollo"
         case .foundationSunshine: "foundation-sunshine"
         case .unknown: "Unknown host"
