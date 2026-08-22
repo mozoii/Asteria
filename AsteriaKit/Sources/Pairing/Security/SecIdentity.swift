@@ -96,16 +96,29 @@ extension ClientIdentity {
             throw PairingError.transport("SecItemAdd(cert)=\(certStatus)")
         }
 
-        var identityResult: CFTypeRef?
+        // The classic file-based keychain ignores attribute filters (tag, application label) on
+        // kSecClassIdentity queries and returns an arbitrary stored identity, so scope by
+        // enumerating every identity and matching the certificate bytes client-side.
+        var identityResults: CFTypeRef?
         let queryStatus = SecItemCopyMatching([
             kSecClass: kSecClassIdentity,
-            kSecAttrApplicationTag: keyTag,
+            kSecMatchLimit: kSecMatchLimitAll,
             kSecReturnRef: true,
-        ] as CFDictionary, &identityResult)
-        guard queryStatus == errSecSuccess, let identity = identityResult,
-              CFGetTypeID(identity) == SecIdentityGetTypeID() else {
+        ] as CFDictionary, &identityResults)
+        guard queryStatus == errSecSuccess, let results = identityResults as? [CFTypeRef] else {
             throw PairingError.transport("SecItemCopyMatching(identity)=\(queryStatus)")
         }
-        return TLSClientIdentity(secIdentity: identity as! SecIdentity)
+        let expectedCertificate = Data(certificateDER)
+        for result in results where CFGetTypeID(result) == SecIdentityGetTypeID() {
+            let candidate = result as! SecIdentity
+            var certificateRef: SecCertificate?
+            guard SecIdentityCopyCertificate(candidate, &certificateRef) == errSecSuccess,
+                  let certificateRef else { continue }
+            if SecCertificateCopyData(certificateRef) as Data == expectedCertificate {
+                return TLSClientIdentity(secIdentity: candidate)
+            }
+        }
+        throw PairingError.transport(
+            "no keychain identity pairs this client certificate — pair the host again")
     }
 }

@@ -1,4 +1,5 @@
 import Foundation
+import Security
 import Testing
 @testable import AsteriaKit
 
@@ -9,6 +10,14 @@ struct PairedHostAccessTests {
         let secrets = InMemorySecretStore()
         let identities = ClientIdentityVault(secretStore: secrets)
         let identity = try identities.create()
+        // createKeychainBacked persists the RSA key in the login keychain even though this vault
+        // stores its PEM in memory; remove it so test runs leave no residue.
+        defer {
+            SecItemDelete([
+                kSecClass: kSecClassKey,
+                kSecAttrApplicationTag: identity.keychainKeyTag,
+            ] as CFDictionary)
+        }
         try identities.save(identity)
         var profile = HostRecord(
             id: "living-room",
@@ -39,6 +48,12 @@ struct PairedHostAccessTests {
         let secrets = InMemorySecretStore()
         let identities = ClientIdentityVault(secretStore: secrets)
         let identity = try identities.create()
+        defer {
+            SecItemDelete([
+                kSecClass: kSecClassKey,
+                kSecAttrApplicationTag: identity.keychainKeyTag,
+            ] as CFDictionary)
+        }
         try identities.save(identity)
         var profile = HostRecord(
             id: "living-room",
