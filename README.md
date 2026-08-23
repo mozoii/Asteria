@@ -8,15 +8,13 @@ to a Mac, with controller, keyboard, and mouse support.
 > You'll need Xcode; see [Building](#building).
 
 ## Why does this exist when Moonlight does?
-Moonlight is amazing at what it does; in fact, it still receives updates to
-this day! Asteria started because I wanted a Swift-native client that leans on
-Apple's own frameworks and optimizations, plus the features I felt were
+Moonlight is amazing at what it does; Asteria started because I wanted a Swift-native client that leans more on Apple's own frameworks and optimizations, plus the features I felt were
 missing: adaptive bitrate, custom keybinds, MetalFX upscaling, and specific
-UI changes.
+UI-related quirks and thought it would be a cool challenge.
 
-Honestly, this project wouldn't exist without
+This project wouldn't exist without
 [Moonlight](https://moonlight-stream.org) and their amazing work, so please
-do support them and use their project for a stable experience on Mac. I see
+do support them and use Moonlight for a stable experience on Mac. I see
 this project as just another option; it may be better for some, or Moonlight
 may be better for them.
 
@@ -141,9 +139,9 @@ full guide. Contributions are accepted under the project's GPLv3 license
 
 Asteria takes inspiration and ideas from various open-source game-streaming projects, It is not affiliated with, or endorsed by, any of these projects:
 
-- [Sunshine](https://app.lizardbyte.dev/Sunshine/), the free, open-source GameStream
+- [Sunshine](https://app.lizardbyte.dev/Sunshine/), the free, open-source game-stream
   host.
-- [Apollo](https://github.com/ClassicOldSong/Apollo), game-stream host with
+- [Apollo](https://github.com/ClassicOldSong/Apollo), fork of sunshine with
   virtual-display support.
 - [Vibepollo](https://github.com/Nonary/Vibepollo), a community fork of
   Apollo with extra features
