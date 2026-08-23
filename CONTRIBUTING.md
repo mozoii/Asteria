@@ -8,14 +8,15 @@ accepted under the project's GPLv3 license (see [`LICENSE`](LICENSE)).
 1. Fork the repository and create a branch for your change.
 2. Install the build requirements:
    - macOS 26 or later on an Apple Silicon Mac (`arm64`)
-   - [Xcode](https://developer.apple.com/xcode/) (the scripts default to
-     `/Applications/Xcode.app`; override with `DEVELOPER_DIR`)
+   - [Xcode](https://developer.apple.com/xcode/) (auto-detected from
+     `/Applications`; override with `DEVELOPER_DIR`)
    - [xcodegen](https://github.com/yonaskolb/XcodeGen): `brew install xcodegen`
 3. Build and test:
 
 ```bash
 ./bootstrap.sh --test      # generate project, build, sign, run the test suite
 ./bootstrap.sh --release   # optimized build
+./bootstrap.sh --doctor    # only verify the environment (OS, chip, Xcode, Swift) and regenerate the project
 ```
 
 No Apple Developer account is needed; everything is ad-hoc signed.

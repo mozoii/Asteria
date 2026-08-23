@@ -71,8 +71,8 @@ may be better for them.
 Build requirements:
 
 - macOS 26 or later on an Apple Silicon Mac (`arm64`).
-- [Xcode](https://developer.apple.com/xcode/). The script defaults to
-  `/Applications/Xcode.app`; override with `DEVELOPER_DIR`.
+- [Xcode](https://developer.apple.com/xcode/). The script auto-detects Xcode
+  in `/Applications`; override with `DEVELOPER_DIR`.
 - [xcodegen](https://github.com/yonaskolb/XcodeGen). Install with
   `brew install xcodegen`.
 
@@ -81,6 +81,7 @@ Build requirements:
 # signs the app so it runs on the Mac.
 ./bootstrap.sh   # add --test for the full AsteriaKit suite, --release for optimized
 ./bootstrap.sh --project   # only generate the Xcode project, skip build/sign/test
+./bootstrap.sh --doctor    # verify the environment (OS, chip, Xcode, Swift) and regenerate the project
 ```
 
 Signing is ad-hoc ("Sign to Run Locally"), so no Apple Developer account is
