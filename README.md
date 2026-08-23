@@ -30,6 +30,8 @@ may be better for them.
 - **Hardware decoding** - H.264, HEVC (10-bit), and AV1.
 - **HDR and MetalFX** - HDR/EDR output and MetalFX upscaling on supported
   displays.
+- **Game Mode** - Supports macOS's Game Mode, so the system can optimize the
+  Mac for gaming while you stream.
 - **Input** - Keyboard and mouse support with two modes: Desktop and Game.
   Desktop optimizes the pointer for general use like browsing or remote
   desktop work, while Game uses Apple's Game Controller framework. Gamepads
