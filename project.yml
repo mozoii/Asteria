@@ -18,8 +18,8 @@ settings:
     MACOSX_DEPLOYMENT_TARGET: "26.0"
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
-    CODE_SIGN_STYLE: Automatic
-    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "Asteria Development (Self-Signed)"
     # Apple Silicon only, no Intel.
     EXCLUDED_ARCHS: x86_64
 

@@ -19,7 +19,9 @@ accepted under the project's GPLv3 license (see [`LICENSE`](LICENSE)).
 ./bootstrap.sh --doctor    # only verify the environment (OS, chip, Xcode, Swift) and regenerate the project
 ```
 
-No Apple Developer account is needed; everything is ad-hoc signed.
+No Apple Developer account is needed; the app is signed with a local self-signed
+identity (`Asteria Development (Self-Signed)`) that `bootstrap.sh` creates on first
+run. Run `./bootstrap.sh` once before building from Xcode.
 
 ## Development workflow
 
