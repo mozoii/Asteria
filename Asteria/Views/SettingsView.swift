@@ -1402,7 +1402,6 @@ struct ChordRecorderSheet: View {
     var onClose: () -> Void
 
     @State private var recorder: ChordRecorder
-    @State private var pulse = false
 
     init(target: RecordingTarget, input: SettingsEditor, onClose: @escaping () -> Void) {
         self.target = target
@@ -1418,8 +1417,16 @@ struct ChordRecorderSheet: View {
                 Text(prompt).font(.system(size: 12)).foregroundStyle(.secondary)
             }
             // "Listening…" capture box — dashed crimson, pulsing dot, live captured combo.
+            // Pulse is time-driven, not a repeatForever animation: those oscillate the dot's position on Retina.
             HStack(spacing: 14) {
-                Circle().fill(AsteriaTheme.accent).frame(width: 12, height: 12).opacity(pulse ? 1 : 0.3)
+                TimelineView(.animation) { context in
+                    let t = context.date.timeIntervalSinceReferenceDate
+                    let opacity = 0.3 + 0.7 * (0.5 - 0.5 * cos(t * 2 * .pi / 1.6))
+                    Circle()
+                        .fill(AsteriaTheme.accent)
+                        .frame(width: 12, height: 12)
+                        .opacity(opacity)
+                }
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Waiting…").font(.system(size: 17, weight: .semibold))
                     Text(target.kind == .keyboard ? "Press the keys simultaneously" : "Hold the buttons simultaneously")
@@ -1463,7 +1470,6 @@ struct ChordRecorderSheet: View {
         .onAppear {
             recorder.onCancel = onClose
             recorder.start()
-            withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) { pulse = true }
         }
         .onDisappear { recorder.stop() }
     }
