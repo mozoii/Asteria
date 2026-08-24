@@ -35,8 +35,9 @@ die() {
 # keychain's signature-based ACL keeps granting access without loosening it.
 provision_signing_identity() {
     # find-identity misses self-signed certs, so gate on the certificate.
+    # find-certificate -a exits 0 even on no match, so gate on its output.
     if security find-certificate -a -c "$SIGNING_IDENTITY" \
-        "$HOME/Library/Keychains/login.keychain-db" >/dev/null 2>&1; then
+        "$HOME/Library/Keychains/login.keychain-db" 2>/dev/null | grep -q .; then
         echo "==> Signing identity '$SIGNING_IDENTITY' already present"
         return 0
     fi
