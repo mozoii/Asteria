@@ -148,4 +148,24 @@ struct DiscoveryServiceTests {
         let result = await DiscoveryService(browser: browser, poller: poller).scan(roster: [], now: now)
         #expect(result.hosts.first?.lastSeen == now)
     }
+
+    @Test("isForgotten matches a host by id, unique id, address, or manual address")
+    func isForgottenPredicate() {
+        let host = HostRecord(
+            id: "client-1",
+            hostUniqueId: "host-1",
+            name: "PC",
+            address: "10.0.0.7",
+            manualAddress: "10.0.0.7"
+        )
+        #expect(DiscoveryService.isForgotten(host, in: ["client-1"]))
+        #expect(DiscoveryService.isForgotten(host, in: ["host-1"]))
+        #expect(DiscoveryService.isForgotten(host, in: ["10.0.0.7"]))
+        #expect(!DiscoveryService.isForgotten(host, in: ["unrelated"]))
+        #expect(!DiscoveryService.isForgotten(host, in: []))
+
+        let noUID = HostRecord(id: "client-2", name: "X", address: "10.0.0.9")
+        #expect(!DiscoveryService.isForgotten(noUID, in: ["some-uid"]))   // nil uniqueId never matches a key
+        #expect(DiscoveryService.isForgotten(noUID, in: ["10.0.0.9"]))
+    }
 }

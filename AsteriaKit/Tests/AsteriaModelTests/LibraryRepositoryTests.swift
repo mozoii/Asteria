@@ -16,7 +16,7 @@ struct LibraryRepositoryTests {
             pinnedCertificate: Data([0xDE, 0xAD, 0xBE, 0xEF]),
             lastSeen: Date(timeIntervalSince1970: 1_700_000_000),
             settingsOverride: override)
-        return LibraryDocument(schemaVersion: 2, globalSettings: .defaults, hosts: [host])
+        return LibraryDocument(schemaVersion: 3, globalSettings: .defaults, hosts: [host])
     }
 
     /// A schemaVersion-1 document whose keybindings predate the mute action (no `toggleMute` entry).
@@ -39,7 +39,7 @@ struct LibraryRepositoryTests {
         #expect(kb.keyboard[.toggleMute] == Keybindings.defaults.keyboard[.toggleMute])   // ⌘⌥⇧M
         #expect(kb.gamepad[.toggleMute] == Keybindings.defaults.gamepad[.toggleMute])      // Start+Select+D-Down
         #expect(kb.keyboard[.toggleStats] == KeyChord(modifiers: [.command, .option], scancode: 22, keyLabel: "S"))
-        #expect(decoded.schemaVersion == 2)
+        #expect(decoded.schemaVersion == 3)
     }
 
     @Test("v1 document custom mute chord is preserved")
@@ -53,7 +53,7 @@ struct LibraryRepositoryTests {
         let decoded = try JSONDecoder().decode(LibraryDocument.self, from: JSONEncoder().encode(doc))
         #expect(decoded.inputPreferences.keybindings.keyboard[.toggleMute]
                 == KeyChord(modifiers: [.control], scancode: 8, keyLabel: "E"))
-        #expect(decoded.schemaVersion == 2)
+        #expect(decoded.schemaVersion == 3)
     }
 
     @Test("v2 document missing mute chord stays unbound")
@@ -65,7 +65,7 @@ struct LibraryRepositoryTests {
         let doc = LibraryDocument(schemaVersion: 2, inputPreferences: prefs)
         let decoded = try JSONDecoder().decode(LibraryDocument.self, from: JSONEncoder().encode(doc))
         #expect(decoded.inputPreferences.keybindings.keyboard[.toggleMute] == nil)
-        #expect(decoded.schemaVersion == 2)
+        #expect(decoded.schemaVersion == 3)
     }
 
     @Test("document without a schemaVersion key is treated as v1 and migrates")
@@ -74,9 +74,21 @@ struct LibraryRepositoryTests {
         object["schemaVersion"] = nil
         let data = try JSONSerialization.data(withJSONObject: object)
         let decoded = try JSONDecoder().decode(LibraryDocument.self, from: data)
-        #expect(decoded.schemaVersion == 2)
+        #expect(decoded.schemaVersion == 3)
         #expect(decoded.inputPreferences.keybindings.keyboard[.toggleMute]
                 == Keybindings.defaults.keyboard[.toggleMute])
+    }
+
+    @Test("v2 document without forgottenHostKeys migrates to empty keys at v3")
+    func v2MigratesMissingForgottenKeys() throws {
+        let v2Doc = LibraryDocument(schemaVersion: 2, hosts: [HostRecord(id: "a", name: "A", address: "1")])
+        var object = try JSONSerialization.jsonObject(with: JSONEncoder().encode(v2Doc)) as! [String: Any]
+        object["forgottenHostKeys"] = nil   // a real v2 document never wrote this key
+        let data = try JSONSerialization.data(withJSONObject: object)
+        let decoded = try JSONDecoder().decode(LibraryDocument.self, from: data)
+        #expect(decoded.schemaVersion == 3)
+        #expect(decoded.forgottenHostKeys.isEmpty)
+        #expect(decoded.hosts.map(\.id) == ["a"])
     }
 
     @Test("In-memory repository round-trips a document")
@@ -104,6 +116,20 @@ struct LibraryRepositoryTests {
         try await repo.save(doc)
         #expect(FileManager.default.fileExists(atPath: url.path))
         #expect(try await repo.load() == doc)
+    }
+
+    @Test("JSON file repository preserves a non-empty forgottenHostKeys list across save/load")
+    func jsonFileRoundTripForgottenKeys() async throws {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("asteriamodel-tests-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let url = dir.appendingPathComponent("library.json")
+        let repo = JSONFileLibraryRepository(fileURL: url)
+        let doc = LibraryDocument(schemaVersion: 3, forgottenHostKeys: ["host-1", "192.168.1.10"])
+        try await repo.save(doc)
+        let loaded = try await repo.load()
+        #expect(loaded.forgottenHostKeys == ["host-1", "192.168.1.10"])
+        #expect(loaded == doc)
     }
 
     @Test("JSON file load returns empty when the file is absent")

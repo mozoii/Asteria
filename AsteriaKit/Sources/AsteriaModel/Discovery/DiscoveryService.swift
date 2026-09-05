@@ -75,12 +75,15 @@ public struct DiscoveryService: Sendable {
         }
         let result = await pollAndReconcile(targets: targets, roster: roster, now: now)
         guard !forgotten.isEmpty else { return result }
-        let hosts = result.hosts.filter { !isForgotten($0, forgotten) }
+        let hosts = result.hosts.filter { !Self.isForgotten($0, in: forgotten) }
         let ids = Set(hosts.map(\.id))
         return DiscoveryResult(hosts: hosts, availability: result.availability.filter { ids.contains($0.key) })
     }
 
-    private func isForgotten(_ host: HostRecord, _ forgotten: Set<String>) -> Bool {
+    /// Whether a reconciled host matches a forgotten identity (id, host unique id, address, or manual address).
+    /// Shared by the scan's pre-await filter and `HostRoster`'s post-await re-filter, so a host the user
+    /// forgets mid-scan is still dropped at commit time.
+    public static func isForgotten(_ host: HostRecord, in forgotten: Set<String>) -> Bool {
         forgotten.contains(host.id) || (host.hostUniqueId.map(forgotten.contains) ?? false)
             || forgotten.contains(host.address)
             || (host.manualAddress.map(forgotten.contains) ?? false)

@@ -10,23 +10,28 @@ public struct LibraryDocument: Codable, Equatable, Sendable {
     public var overlayPreferences: OverlayPreferences
     /// Set once the first-run setup flow finishes; gates whether onboarding is shown on launch.
     public var isOnboardingComplete: Bool
+    /// Ids/addresses of hosts the user chose "Forget this PC" for; persisted so they stay gone across launches.
+    public var forgottenHostKeys: [String]
 
     /// Current on-disk schema. Bump and add a migration in `init(from:)` when new fields ship.
-    public static let currentSchemaVersion = 2
+    public static let currentSchemaVersion = 3
 
-    public init(schemaVersion: Int = 2, globalSettings: StreamSettings = .defaults, hosts: [HostRecord] = [],
+    public init(schemaVersion: Int = 3, globalSettings: StreamSettings = .defaults, hosts: [HostRecord] = [],
                 inputPreferences: InputPreferences = .defaults,
-                overlayPreferences: OverlayPreferences = .defaults, isOnboardingComplete: Bool = false) {
+                overlayPreferences: OverlayPreferences = .defaults, isOnboardingComplete: Bool = false,
+                forgottenHostKeys: [String] = []) {
         self.schemaVersion = schemaVersion
         self.globalSettings = globalSettings
         self.hosts = hosts
         self.inputPreferences = inputPreferences
         self.overlayPreferences = overlayPreferences
         self.isOnboardingComplete = isOnboardingComplete
+        self.forgottenHostKeys = forgottenHostKeys
     }
 
     enum CodingKeys: String, CodingKey {
         case schemaVersion, globalSettings, hosts, inputPreferences, overlayPreferences, isOnboardingComplete
+        case forgottenHostKeys
     }
 
     // Tolerant decode so a document written before a field existed loads with that field's default.
@@ -38,11 +43,15 @@ public struct LibraryDocument: Codable, Equatable, Sendable {
         inputPreferences = try c.decodeIfPresent(InputPreferences.self, forKey: .inputPreferences) ?? .defaults
         overlayPreferences = try c.decodeIfPresent(OverlayPreferences.self, forKey: .overlayPreferences) ?? .defaults
         isOnboardingComplete = try c.decodeIfPresent(Bool.self, forKey: .isOnboardingComplete) ?? false
+        forgottenHostKeys = try c.decodeIfPresent([String].self, forKey: .forgottenHostKeys) ?? []
+        let writtenVersion = schemaVersion
         // v1→v2: documents saved before the mute action existed have no mute chords; backfill defaults once.
-        if schemaVersion < Self.currentSchemaVersion {
+        // Only v1 (pre-mute) documents need this — a v2 doc that omits a chord means "unbound", so it must not backfill.
+        if writtenVersion < 2 {
             inputPreferences.keybindings = inputPreferences.keybindings.fillingMissingDefaults()
-            schemaVersion = Self.currentSchemaVersion
         }
+        // Every decode re-stamps to the current on-disk schema (v2→v3 adds forgottenHostKeys, defaulted above).
+        schemaVersion = Self.currentSchemaVersion
     }
 
     public static let empty = LibraryDocument()
