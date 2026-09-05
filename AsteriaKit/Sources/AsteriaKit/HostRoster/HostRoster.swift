@@ -37,6 +37,7 @@ public actor HostRoster {
     public func load() async throws -> State {
         let document = try await store.snapshot()
         state.profiles = document.hosts
+        forgottenKeys = Set(document.forgottenHostKeys)
         return state
     }
 
@@ -51,7 +52,10 @@ public actor HostRoster {
             scanSeconds: scanSeconds,
             now: now
         )
-        let profiles = profilesFromCandidates(result.hosts)
+        // Re-filter against the current forgotten set at commit time: a forget that ran while this
+        // scan was in flight updates `forgottenKeys`, and its stale candidate must not be re-added.
+        let candidates = result.hosts.filter { !DiscoveryService.isForgotten($0, in: forgottenKeys) }
+        let profiles = profilesFromCandidates(candidates)
         let committed = try await store.update { document in
             document.hosts = profiles
         }
@@ -72,13 +76,24 @@ public actor HostRoster {
             now: now
         ) else { return nil }
         let profiles = profilesFromCandidates(result.hosts)
-        let committed = try await store.update { $0.hosts = profiles }
-        for profile in committed.hosts { unforget(profile) }
-        state.profiles = committed.hosts
-        for (id, availability) in result.availability {
-            state.availability[id] = availability
+        let previousKeys = forgottenKeys
+        for profile in profiles { unforget(profile) }
+        let committedKeys = Array(forgottenKeys)
+        do {
+            let committed = try await store.update { document in
+                document.hosts = profiles
+                document.forgottenHostKeys = committedKeys
+            }
+            state.profiles = committed.hosts
+            for (id, availability) in result.availability {
+                state.availability[id] = availability
+            }
+            return state
+        } catch {
+            // A failed persist must leave no in-memory trace: restore the suppression keys we cleared.
+            forgottenKeys = previousKeys
+            throw error
         }
-        return state
     }
 
     @discardableResult
@@ -110,11 +125,22 @@ public actor HostRoster {
         var profiles = state.profiles
         profiles.removeAll { $0.id == profileID }
         let remainingProfiles = profiles
-        let committed = try await store.update { $0.hosts = remainingProfiles }
-        state.profiles = committed.hosts
-        state.availability[profileID] = nil
-        rememberForgotten(profile, remainingProfiles: committed.hosts)
-        return state
+        let previousKeys = forgottenKeys
+        rememberForgotten(profile, remainingProfiles: remainingProfiles)
+        let committedKeys = Array(forgottenKeys)
+        do {
+            let committed = try await store.update { document in
+                document.hosts = remainingProfiles
+                document.forgottenHostKeys = committedKeys
+            }
+            state.profiles = committed.hosts
+            state.availability[profileID] = nil
+            return state
+        } catch {
+            // A failed persist must leave no in-memory trace: roll back the suppression keys we added.
+            forgottenKeys = previousKeys
+            throw error
+        }
     }
 
     private func updateProfile(
