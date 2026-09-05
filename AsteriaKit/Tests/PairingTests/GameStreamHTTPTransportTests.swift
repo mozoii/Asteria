@@ -137,8 +137,6 @@ struct GameStreamHTTPTransportTests {
         }
     }
 
-    // MARK: - helpers
-
     private func tempFile(_ prefix: String) -> URL {
         FileManager.default.temporaryDirectory
             .appendingPathComponent("\(prefix)-\(UUID().uuidString)")
