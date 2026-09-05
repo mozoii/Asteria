@@ -6,13 +6,9 @@ import AsteriaModel
 
 /// Reads local Mac battery state and app-attributed power without extra permission.
 /// Battery values use IOPowerSources and live registry telemetry.
-@MainActor
-struct LocalPowerTelemetry {
+/// The IOKit queries can block, so sampling runs off the main actor; the caller owns one instance per polling loop.
+struct LocalPowerTelemetry: Sendable {
     private var applicationPowerMeter = ApplicationPowerMeter()
-
-    mutating func reset() {
-        applicationPowerMeter.reset()
-    }
 
     mutating func sample(at time: Double) -> LaptopStats {
         let registry = registryProperties()

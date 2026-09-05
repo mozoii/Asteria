@@ -65,7 +65,8 @@ final class StreamController {
     var onToggleFullscreen: () -> Void = {}
 
     private(set) var decodedFrames = 0
-    private var lastSnapshotDecodedFrames = 0
+    /// Decoded-frame rate normalized over the elapsed interval between snapshots.
+    private var frameRateMeter = FrameRateMeter()
     private(set) var fps = 0
     private(set) var presentedFrames = 0
     private(set) var lostFrames = 0
@@ -82,9 +83,8 @@ final class StreamController {
     private(set) var hdrActive = false
     /// Negotiated bit depth, so a live HDR toggle mirrors the presenter's 10-bit-only gate.
     private var streamIsTenBit = false
-    /// Local Mac telemetry shown automatically in the stats HUD.
+    /// Local Mac telemetry shown automatically in the stats HUD; published by the power-polling task.
     private(set) var laptopStats = LaptopStats.unavailable
-    private var powerUsageMeter = PowerUsageMeter()
     private(set) var powerUsageHigh = false
 
     var statsModel: StatsHUDModel {
@@ -106,7 +106,6 @@ final class StreamController {
     private let capabilities: StreamCapabilities
     private let inputPreferences: InputPreferences
     private let overlayPreferences: OverlayPreferences
-    private var localPowerTelemetry = LocalPowerTelemetry()
     private var screenSleepGuard = ScreenSleepGuard()
     private let identities: ClientIdentityVault
     private let clipboard: any ClipboardSource
@@ -131,6 +130,9 @@ final class StreamController {
     private var activeObservers: [NSObjectProtocol] = []
     private var eventsTask: Task<Void, Never>?
     private var statsTask: Task<Void, Never>?
+    /// True while a connection attempt is in flight, so a repeated `connect()` can't start a
+    /// parallel session whose snapshots would interleave with the live one.
+    private var connectAttemptInFlight = false
     /// Serializes capture requests: independent `Task`s racing to the session could otherwise land the
     /// final `setInputCapture(false)`/`(true)` out of order and strand input gated off.
     private var captureTask: Task<Void, Never>?
@@ -161,7 +163,11 @@ final class StreamController {
     }
 
     /// Negotiate, assemble, and drive the connection lifecycle to streaming (or a setup failure).
-    func connect() async { await apply(.connectRequested) }
+    /// Idempotent: no-ops while a session is live or an attempt is in flight.
+    func connect() async {
+        guard streamSession == nil, !connectAttemptInFlight else { return }
+        await apply(.connectRequested)
+    }
 
     /// Reconnect after an unexpected drop (overlay button). With quit-and-relaunch this restarts the game.
     func reconnect() { Task { await connect() } }
@@ -206,10 +212,16 @@ final class StreamController {
 
     /// Build the pinned transport + wire config, open the session, and report the outcome back as an event.
     private func beginAttempt(forceLaunch: Bool) async {
+        guard !connectAttemptInFlight else {
+            Self.statsLog.error("beginAttempt dropped: attempt already in flight")
+            return
+        }
+        connectAttemptInFlight = true
+        defer { connectAttemptInFlight = false }
         screenSleepGuard.start()
-        powerUsageMeter.reset()
-        localPowerTelemetry.reset()
-        lastSnapshotDecodedFrames = 0
+        frameRateMeter.reset()
+        fps = 0
+        decodedFrames = 0
         laptopStats = .unavailable
         powerUsageHigh = false
         do {
@@ -347,8 +359,6 @@ final class StreamController {
         inputCapture.restoreCursor()
         eventsTask?.cancel(); eventsTask = nil
         hdrActive = false; streamIsTenBit = false
-        powerUsageMeter.reset()
-        localPowerTelemetry.reset()
         laptopStats = .unavailable
         powerUsageHigh = false
         captureTask?.cancel(); captureTask = nil
@@ -535,8 +545,10 @@ final class StreamController {
     private func applyRuntimeSnapshot(_ snapshot: LiveRuntimeSnapshot) {
         let telemetry = snapshot.telemetry
         decodedFrames = snapshot.presentation.deliveredFrames
-        fps = max(0, decodedFrames - lastSnapshotDecodedFrames)
-        lastSnapshotDecodedFrames = decodedFrames
+        // A nil sample (first read or counter reset) holds the previous fps rather than spiking or zeroing it.
+        if let rate = frameRateMeter.sample(frames: decodedFrames, at: snapshot.timestampNanos) {
+            fps = max(0, Int(rate.rounded()))
+        }
         presentedFrames = snapshot.presentation.presentedFrames
         decodeMillis = snapshot.presentation.meanDecodeMillis
         lostFrames = telemetry.decode.networkLost
@@ -549,21 +561,28 @@ final class StreamController {
         adaptiveMode = snapshot.adaptiveMode
     }
 
+    /// Battery/app-power sampling off the main actor, since the IOKit queries can block; only the
+    /// results publish back. A fresh pair of meters per stream — each attempt starts its own loop.
     private func startLocalPowerPolling() {
-        statsTask = Task { [weak self] in
+        statsTask = Task.detached { [weak self] in
+            var telemetry = LocalPowerTelemetry()
+            var powerMeter = PowerUsageMeter()
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
-                guard let self else { continue }
                 let sampleTime = CACurrentMediaTime()
-                let localStats = self.localPowerTelemetry.sample(at: sampleTime)
-                let smoothedPower = self.powerUsageMeter.sample(
-                    watts: localStats.appPowerWatts, at: sampleTime)
-                self.laptopStats = LaptopStats(hasBattery: localStats.hasBattery,
-                                                batteryPercent: localStats.batteryPercent,
-                                                batteryState: localStats.batteryState,
-                                                timeRemainingMinutes: localStats.timeRemainingMinutes,
-                                                appPowerWatts: smoothedPower)
-                self.powerUsageHigh = self.powerUsageMeter.isHighPower
+                let localStats = telemetry.sample(at: sampleTime)
+                let smoothedPower = powerMeter.sample(watts: localStats.appPowerWatts, at: sampleTime)
+                let highPower = powerMeter.isHighPower
+                let stats = LaptopStats(hasBattery: localStats.hasBattery,
+                                        batteryPercent: localStats.batteryPercent,
+                                        batteryState: localStats.batteryState,
+                                        timeRemainingMinutes: localStats.timeRemainingMinutes,
+                                        appPowerWatts: smoothedPower)
+                await MainActor.run { [weak self] in
+                    guard !Task.isCancelled else { return }
+                    self?.laptopStats = stats
+                    self?.powerUsageHigh = highPower
+                }
             }
         }
     }

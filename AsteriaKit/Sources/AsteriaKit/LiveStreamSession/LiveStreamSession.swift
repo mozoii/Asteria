@@ -56,19 +56,23 @@ public struct LiveRuntimeSnapshot: Equatable, Sendable {
     public let bitrateMbps: Double
     public let adaptiveActive: Bool
     public let adaptiveMode: AdaptiveMode
+    /// Monotonic uptime (nanos) at publish time, so consumers can normalize rates over the actual interval.
+    public let timestampNanos: UInt64
 
     public init(
         telemetry: StreamTelemetry,
         presentation: LivePresentationMetrics,
         bitrateMbps: Double,
         adaptiveActive: Bool,
-        adaptiveMode: AdaptiveMode
+        adaptiveMode: AdaptiveMode,
+        timestampNanos: UInt64 = 0
     ) {
         self.telemetry = telemetry
         self.presentation = presentation
         self.bitrateMbps = bitrateMbps
         self.adaptiveActive = adaptiveActive
         self.adaptiveMode = adaptiveMode
+        self.timestampNanos = timestampNanos
     }
 }
 
@@ -304,12 +308,14 @@ public actor LiveStreamSession {
             at: Date().timeIntervalSinceReferenceDate
         )
         driveLocalAdaptive(lossPercent: telemetry.decode.lossRate * 100)
+        // One clock sample shared by the liveness check and the snapshot timestamp.
+        let now = DispatchTime.now().uptimeNanoseconds
         // Safety net for a host that dies without a termination message (crash, network drop):
         // a flat video byte counter or a stalled present path tears the session down.
         if let reason = livenessWatchdog.observe(
             videoBytes: telemetry.videoTransport.bytes,
             deliveredFrames: presentation.deliveredFrames,
-            now: DispatchTime.now().uptimeNanoseconds
+            now: now
         ) {
             Task { await session.stop(error: reason) }
         }
@@ -318,7 +324,8 @@ public actor LiveStreamSession {
             presentation: presentation,
             bitrateMbps: bitrate,
             adaptiveActive: adaptiveActive,
-            adaptiveMode: adaptiveMode
+            adaptiveMode: adaptiveMode,
+            timestampNanos: now
         )))
     }
 
