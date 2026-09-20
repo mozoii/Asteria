@@ -24,6 +24,10 @@ enum DisplayProbe {
         return refresh > 0 ? refresh : nil
     }
 
+    /// The stream window can move to a bigger or faster display after it starts, so the full
+    /// ladders stay.
+    static let limitsPresetsToPanel = false
+
     static var mainDisplaySupportsEDR: Bool {
         (NSScreen.main?.maximumPotentialExtendedDynamicRangeColorComponentValue ?? 1) > 1
     }

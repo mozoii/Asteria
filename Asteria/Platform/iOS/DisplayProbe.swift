@@ -24,6 +24,10 @@ enum DisplayProbe {
 
     static var mainDisplayRefreshHz: Int? { maximumRefreshHz }
 
+    /// A stream can only ever play on this panel, so offering modes above its size or refresh just
+    /// spends host encode budget on pixels and frames nobody sees.
+    static let limitsPresetsToPanel = true
+
     /// EDR headroom above 1 means the panel can drive highlights brighter than SDR white.
     static var mainDisplaySupportsEDR: Bool {
         screen.potentialEDRHeadroom > 1

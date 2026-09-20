@@ -15,6 +15,54 @@ struct StreamCapabilitiesTests {
         #expect(caps.frameRatePresets.contains(240))
     }
 
+    @Test("Limiting to the panel keeps only rates the display can show, plus its own refresh")
+    func frameRatesLimitedToPanel() {
+        let sixty = StreamCapabilities.make(
+            codecs: [.hevc], supportsTenBit: false,
+            displaySize: PixelSize(width: 2556, height: 1179), displayRefreshHz: 60,
+            limitPresetsToDisplay: true)
+        #expect(sixty.frameRatePresets == [30, 60])
+
+        let proMotion = StreamCapabilities.make(
+            codecs: [.hevc], supportsTenBit: false,
+            displaySize: PixelSize(width: 2868, height: 1320), displayRefreshHz: 120,
+            limitPresetsToDisplay: true)
+        #expect(proMotion.frameRatePresets == [30, 60, 120])
+
+        let ninety = StreamCapabilities.make(
+            codecs: [.hevc], supportsTenBit: false,
+            displaySize: nil, displayRefreshHz: 90, limitPresetsToDisplay: true)
+        #expect(ninety.frameRatePresets == [30, 60, 90])
+
+        let unknown = StreamCapabilities.make(
+            codecs: [.hevc], supportsTenBit: false,
+            displaySize: nil, displayRefreshHz: nil, limitPresetsToDisplay: true)
+        #expect(unknown.frameRatePresets == StreamCapabilities.allFrameRatePresets)
+    }
+
+    @Test("Limiting to the panel keeps only resolutions that fit it in both dimensions")
+    func resolutionsLimitedToPanel() {
+        let phone = StreamCapabilities.make(
+            codecs: [.hevc], supportsTenBit: false,
+            displaySize: PixelSize(width: 2868, height: 1320), displayRefreshHz: 120,
+            limitPresetsToDisplay: true)
+        #expect(phone.resolutionPresets == [PixelSize(width: 1280, height: 720),
+                                            PixelSize(width: 1920, height: 1080)])
+
+        let tablet = StreamCapabilities.make(
+            codecs: [.hevc], supportsTenBit: false,
+            displaySize: PixelSize(width: 2752, height: 2064), displayRefreshHz: 120,
+            limitPresetsToDisplay: true)
+        #expect(tablet.resolutionPresets == [PixelSize(width: 1280, height: 720),
+                                             PixelSize(width: 1920, height: 1080),
+                                             PixelSize(width: 2560, height: 1440)])
+
+        let unknown = StreamCapabilities.make(
+            codecs: [.hevc], supportsTenBit: false,
+            displaySize: nil, displayRefreshHz: nil, limitPresetsToDisplay: true)
+        #expect(unknown.resolutionPresets == StreamCapabilities.allResolutionPresets)
+    }
+
     @Test("Display size and refresh are still retained for Match/auto-bitrate")
     func retainsDisplayInfo() {
         let caps = StreamCapabilities.make(codecs: [.h264], supportsTenBit: false,

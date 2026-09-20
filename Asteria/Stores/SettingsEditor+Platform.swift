@@ -34,7 +34,8 @@ extension SettingsEditor {
             supportsTenBit: decoder.hevcMain10 || decoder.av1Main10,
             supportsHDR: decoder.supportsHDR,
             displaySize: size,
-            displayRefreshHz: refresh
+            displayRefreshHz: refresh,
+            limitPresetsToDisplay: DisplayProbe.limitsPresetsToPanel
         )
     }
 
