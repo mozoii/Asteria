@@ -1658,7 +1658,7 @@ struct AboutSettingsSection: View {
                 .linkPointerStyle(true)
                 .onHover { versionHovering = $0 }
                 .accessibilityLabel("\(version), show release notes")
-                Text("A low-latency GameStream client for \(PlatformCopy.osName).")
+                Text("A low-latency GameStream client for the Apple ecosystem.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             .releaseNotesPresentation(isPresented: $showWhatsNew)
