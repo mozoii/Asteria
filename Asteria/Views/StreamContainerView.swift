@@ -21,7 +21,8 @@ struct StreamContainerView: View {
         let plan = StreamPlan.resolve(global: library.globalSettings,
                                       override: library.override(for: host),
                                       capabilities: capabilities)
-        let prefs = library.inputPreferences
+        var prefs = library.inputPreferences
+        if !PlatformCopy.supportsKeyboardAndMouseSettings { prefs.mouseMode = .game }
         _controller = State(initialValue: StreamController(
             host: host, entry: entry, settings: plan.settings,
             capabilities: capabilities, inputPreferences: prefs,

@@ -16,6 +16,8 @@ enum PlatformCopy {
     /// "Match Mac" reads better beside the PC resolutions in the picker; iOS has no such pairing.
     static let matchDisplayLabel = "Match Mac"
     static let osName = "macOS"
+    /// Pointer mode, button swaps and keyboard shortcuts are worth a settings section here.
+    static let supportsKeyboardAndMouseSettings = true
     /// macOS can show another app beside the stream, so "another app is active" is the trigger.
     static let muteWhenInactiveDetail = "Mute stream audio while another app is active."
     #else
@@ -28,6 +30,9 @@ enum PlatformCopy {
     static let supportsWindowedStreams = false
     static let matchDisplayLabel = "Match display"
     static let osName = "iOS"
+    /// Touch and controllers are the input story on a phone or tablet: no pointer mode to pick
+    /// (every input drives the game pointer) and no keyboard shortcuts to rebind.
+    static let supportsKeyboardAndMouseSettings = false
     /// iOS streams own the screen, so the trigger is the app losing focus, not another app gaining it.
     static let muteWhenInactiveDetail = "Mute stream audio while Asteria isn't in the foreground."
     #endif

@@ -440,17 +440,19 @@ struct SettingsView: View {
     }
 
     @ViewBuilder private var inputLeft: some View {
-        Panel("Mouse") {
-            row("Mode", subtitle: store.inputPreferences.mouseMode.detail) {
-                menuView("Mode", store.inputPreferences.mouseMode.displayName)
+        if PlatformCopy.supportsKeyboardAndMouseSettings {
+            Panel("Mouse") {
+                row("Mode", subtitle: store.inputPreferences.mouseMode.detail) {
+                    menuView("Mode", store.inputPreferences.mouseMode.displayName)
+                }
+                row("Swap mouse buttons", subtitle: "Left and right click are swapped.") {
+                    DeckCheckbox(isOn: $store.inputPreferences.swapMouseButtons)
+                }
             }
-            row("Swap mouse buttons", subtitle: "Left and right click are swapped.") {
-                DeckCheckbox(isOn: $store.inputPreferences.swapMouseButtons)
-            }
-        }
-        Panel("Keyboard") {
-            row("Swap Win / Alt keys", subtitle: "Alt sends Windows, and Windows sends Alt, on the host.") {
-                DeckCheckbox(isOn: $store.inputPreferences.swapWinAltKeys)
+            Panel("Keyboard") {
+                row("Swap Win / Alt keys", subtitle: "Alt sends Windows, and Windows sends Alt, on the host.") {
+                    DeckCheckbox(isOn: $store.inputPreferences.swapWinAltKeys)
+                }
             }
         }
         Panel("Controller", trailingTitle: controllerBatteryTitle,
@@ -491,8 +493,10 @@ struct SettingsView: View {
     }
 
     @ViewBuilder private var inputRight: some View {
-        Panel("Keyboard shortcuts") {
-            ForEach(Self.rebindableActions) { action in keybindRow(action, kind: .keyboard) }
+        if PlatformCopy.supportsKeyboardAndMouseSettings {
+            Panel("Keyboard shortcuts") {
+                ForEach(Self.rebindableActions) { action in keybindRow(action, kind: .keyboard) }
+            }
         }
         Panel("Controller combos") {
             ForEach(Self.rebindableActions) { action in keybindRow(action, kind: .gamepad) }
@@ -804,8 +808,9 @@ struct SettingsView: View {
         case .audio: return ["Channels", "Play audio on host", "Mute when inactive"]
         case .host: return ["Close app on host", "Sync clipboard"]
         case .input:
-            var controls = ["Mode", "Swap mouse buttons", "Swap Win / Alt keys",
-                            "Swap A / B face buttons", "Show Battery Percentage"]
+            var controls = PlatformCopy.supportsKeyboardAndMouseSettings
+                ? ["Mode", "Swap mouse buttons", "Swap Win / Alt keys"] : []
+            controls += ["Swap A / B face buttons", "Show Battery Percentage"]
             if hasPlayStationController { controls += ["Emulation mode", "LED color"] }
             return controls
         case .appearance:
@@ -821,7 +826,9 @@ struct SettingsView: View {
             return ["Bitrate"] + adaptive + ["Codec", "Bit depth", "HDR"]
         case .audio, .host, .appearance: return []
         case .input:
-            return Self.rebindableActions.map { keybindFocus($0, .keyboard) }
+            let keyboard = PlatformCopy.supportsKeyboardAndMouseSettings
+                ? Self.rebindableActions.map { keybindFocus($0, .keyboard) } : []
+            return keyboard
                 + Self.rebindableActions.map { keybindFocus($0, .gamepad) }
                 + ["reset-shortcuts"]
         case .about: return []
