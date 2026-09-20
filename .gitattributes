@@ -1,0 +1,4 @@
+# Vendored third-party C libraries: exclude from GitHub language stats.
+AsteriaKit/Sources/CENet/* linguist-vendored
+AsteriaKit/Sources/CNanors/* linguist-vendored
+AsteriaKit/Sources/COpus/* linguist-vendored
