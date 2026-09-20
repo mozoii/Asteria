@@ -1,8 +1,8 @@
 # Asteria
 
-A low-latency, open-source GameStream client for Apple platforms. Stream games
+A low-latency, open-source GameStream client for the Apple ecosystem. Stream games
 from a Windows PC running [Sunshine](https://app.lizardbyte.dev/Sunshine/) to a
-Mac, iPhone, or iPad, with controller, keyboard, and mouse support.
+Mac, or iPhone with controller, keyboard, and mouse support.
 
 > **No prebuilt binaries** - Asteria is build-from-source only.
 > You'll need Xcode; see [Building](#building).
@@ -14,7 +14,7 @@ UI-related quirks and thought it would be a cool challenge.
 
 This project wouldn't exist without
 [Moonlight](https://moonlight-stream.org) and their amazing work, so please
-do support them and use Moonlight for a stable experience on Mac. I see
+do support them and use Moonlight for a stable experience on Mac/iOS. I see
 this project as just another option; it may be better for some, or Moonlight
 may be better for them.
 
