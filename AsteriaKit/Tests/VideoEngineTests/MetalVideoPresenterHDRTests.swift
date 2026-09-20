@@ -5,7 +5,7 @@ import CoreGraphics
 
 /// The render-thread HDR reconcile: `setHdrMode` flips the layer live, and HDR10 metadata is adopted from the
 /// first SEI-bearing frame. Drives `applyHDRState` directly (the frame path calls it) without a display link.
-@Suite("Live HDR reconcile")
+@Suite("Live HDR reconcile", .enabled(if: Hardware.hasRenderPipeline, "requires a Metal GPU"))
 struct MetalVideoPresenterHDRTests {
     private func presenter(hdr: Bool, tenBit: Bool) throws -> MetalVideoPresenter {
         try MetalVideoPresenter(holder: LatestFrameHolder(), initialSize: CGSize(width: 64, height: 64),
@@ -13,7 +13,8 @@ struct MetalVideoPresenterHDRTests {
                                                         enableMetalFX: false, hdr: hdr), tenBit: tenBit)
     }
 
-    @Test("setHdrMode flips layer tagging on, adopts metadata, then clears it on disable")
+    @Test("setHdrMode flips layer tagging on, adopts metadata, then clears it on disable",
+          .enabled(if: Hardware.hasEDRMetadata, "requires a platform that builds CAEDRMetadata"))
     func reconcileOnOff() throws {
         let p = try presenter(hdr: false, tenBit: true)
         #expect(p.metalLayer.colorspace?.name == CGColorSpace.sRGB)   // starts SDR
@@ -33,7 +34,8 @@ struct MetalVideoPresenterHDRTests {
         #expect(p.metalLayer.edrMetadata == nil)
     }
 
-    @Test("HDR10 metadata is adopted only once a frame carrying the SEI arrives")
+    @Test("HDR10 metadata is adopted only once a frame carrying the SEI arrives",
+          .enabled(if: Hardware.hasEDRMetadata, "requires a platform that builds CAEDRMetadata"))
     func metadataAwaitsSEI() throws {
         let p = try presenter(hdr: true, tenBit: true)
         let bare = try PresentTestSupport.hdrPixelBuffer(width: 64, height: 64, mastering: nil, contentLight: nil)

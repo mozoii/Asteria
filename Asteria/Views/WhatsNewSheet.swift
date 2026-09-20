@@ -102,7 +102,7 @@ struct WhatsNewSheet: View {
             }
             footer
         }
-        .frame(width: 480, height: 620)
+        .frame(maxWidth: 480, maxHeight: 620)
         .background(AsteriaTheme.background)
         .task { items = await WhatsNew.currentChangelog()?.orderedItems() ?? [] }
     }

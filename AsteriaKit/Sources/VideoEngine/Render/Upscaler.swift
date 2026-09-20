@@ -1,5 +1,7 @@
 import Metal
+#if canImport(MetalFX)
 import MetalFX
+#endif
 
 /// Pluggable spatial-upscaling stage; MetalFX is one implementation.
 public protocol Upscaler: AnyObject {
@@ -9,6 +11,7 @@ public protocol Upscaler: AnyObject {
     func encode(input: MTLTexture, output: MTLTexture, in commandBuffer: MTLCommandBuffer)
 }
 
+#if canImport(MetalFX)
 /// MetalFX spatial upscaler; colour mode `perceptual` for gamma-encoded SDR RGB.
 public final class SpatialUpscaler: Upscaler {
     public let outputWidth: Int
@@ -44,3 +47,21 @@ public final class SpatialUpscaler: Upscaler {
         scaler.encode(commandBuffer: commandBuffer)
     }
 }
+#else
+/// The iOS simulator SDK ships no MetalFX. The type stays so the present path needs no platform
+/// branches: it reports itself unsupported, which is the same answer real hardware without MetalFX
+/// gives, and the presenter already falls back to the fused single-pass present.
+public final class SpatialUpscaler: Upscaler {
+    public let outputWidth: Int
+    public let outputHeight: Int
+
+    public static func isSupported(device: MTLDevice) -> Bool { false }
+
+    public init(context: MetalRenderContext, inputWidth: Int, inputHeight: Int,
+                outputWidth: Int, outputHeight: Int, colorFormat: MTLPixelFormat = .rgba16Float) throws {
+        throw MetalRenderError.pipeline("MetalFX is unavailable in the simulator")
+    }
+
+    public func encode(input: MTLTexture, output: MTLTexture, in commandBuffer: MTLCommandBuffer) {}
+}
+#endif

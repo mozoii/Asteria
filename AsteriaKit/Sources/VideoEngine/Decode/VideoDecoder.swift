@@ -75,9 +75,16 @@ public actor VideoDecoder {
             kCVPixelBufferMetalCompatibilityKey: true,
             kCVPixelBufferIOSurfacePropertiesKey: [String: Any](),
         ]
+        // The simulator has no hardware decoder, so requiring one fails session creation outright and
+        // the shell can't be exercised there at all. Devices keep the requirement: a silent fallback to
+        // software decode would blow the latency budget rather than fail visibly.
+        #if targetEnvironment(simulator)
+        let decoderSpecification: [CFString: Any] = [:]
+        #else
         let decoderSpecification: [CFString: Any] = [
             kVTVideoDecoderSpecification_RequireHardwareAcceleratedVideoDecoder: true,
         ]
+        #endif
 
         var newSession: VTDecompressionSession?
         let status = VTDecompressionSessionCreate(

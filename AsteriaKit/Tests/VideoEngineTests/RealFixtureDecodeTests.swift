@@ -6,7 +6,7 @@ import VideoToolbox
 @testable import VideoEngine
 
 /// Real Sunshine keyframe hardware-decode validation; synthetic + real = comprehensive decode coverage.
-@Suite("Real Sunshine fixture decode")
+@Suite("Real Sunshine fixture decode", .enabled(if: Hardware.hasHardwareHEVCDecode, "requires a hardware video decoder"))
 struct RealFixtureDecodeTests {
     static func loadFixture() throws -> [UInt8] {
         let url = try #require(

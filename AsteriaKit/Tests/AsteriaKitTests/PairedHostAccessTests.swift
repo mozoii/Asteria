@@ -1,5 +1,4 @@
 import Foundation
-import Security
 import Testing
 @testable import AsteriaKit
 
@@ -9,15 +8,10 @@ struct PairedHostAccessTests {
     func establishesAccess() async throws {
         let secrets = InMemorySecretStore()
         let identities = ClientIdentityVault(secretStore: secrets)
-        let identity = try identities.create()
-        // createKeychainBacked persists the RSA key in the login keychain even though this vault
-        // stores its PEM in memory; remove it so test runs leave no residue.
-        defer {
-            SecItemDelete([
-                kSecClass: kSecClassKey,
-                kSecAttrApplicationTag: identity.keychainKeyTag,
-            ] as CFDictionary)
-        }
+        // Generated, not keychain-backed: this suite is about how PairedHostAccess wires a profile
+        // to a transport, and a keychain identity would tie it to a process entitled to write one.
+        // `TLSIdentityTests` covers the keychain-backed path.
+        let identity = try ClientIdentity.generate()
         try identities.save(identity)
         var profile = HostRecord(
             id: "living-room",
@@ -47,13 +41,7 @@ struct PairedHostAccessTests {
     func preservesServerVerificationFailure() async throws {
         let secrets = InMemorySecretStore()
         let identities = ClientIdentityVault(secretStore: secrets)
-        let identity = try identities.create()
-        defer {
-            SecItemDelete([
-                kSecClass: kSecClassKey,
-                kSecAttrApplicationTag: identity.keychainKeyTag,
-            ] as CFDictionary)
-        }
+        let identity = try ClientIdentity.generate()
         try identities.save(identity)
         var profile = HostRecord(
             id: "living-room",

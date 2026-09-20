@@ -4,7 +4,7 @@ import Metal
 
 /// The 10-bit present path adds a static screen-space TPDF dither: deterministic, ≤1 LSB, and it demonstrably
 /// shortens flat-region banding runs versus the 8-bit baseline.
-@Suite("Present dither + banding")
+@Suite("Present dither + banding", .enabled(if: Hardware.hasRenderPipeline, "requires a Metal GPU"))
 struct DitherTests {
     /// Render a source through the present pass into a fresh target and return one row's normalized R values.
     static func present(_ context: MetalRenderContext, source: MTLTexture, pixelFormat: MTLPixelFormat,

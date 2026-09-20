@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- iOS apps are always sandboxed and outbound networking needs no entitlement, so the macOS
+	     sandbox/network/device keys have no iOS counterpart. Local-network access is gated by the
+	     NSLocalNetworkUsageDescription prompt, and GameController needs no entitlement here. -->
+</dict>
+</plist>

@@ -52,17 +52,23 @@ struct ControllerHintBar: View {
     var body: some View {
         Group {
             if isRunningInPreview || controller != nil {
-                HStack(spacing: 22) {
-                    ForEach(hints) { hint in
-                        HStack(spacing: 7) {
-                            ControllerGlyphView(glyph: hint.glyph, controller: controller)
-                            Text(hint.label).font(.caption).foregroundStyle(.secondary)
+                // Scrolls rather than wrapping: a phone can't fit five prompts, and a hyphenated
+                // "Sec-tion" reads worse than one that runs off the edge.
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 22) {
+                        ForEach(hints) { hint in
+                            HStack(spacing: 7) {
+                                ControllerGlyphView(glyph: hint.glyph, controller: controller)
+                                Text(hint.label).font(.caption).foregroundStyle(.secondary)
+                                    .fixedSize()
+                            }
                         }
+                        Spacer(minLength: 0)
                     }
-                    Spacer(minLength: 0)
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 12)
                 }
-                .padding(.horizontal, 28)
-                .padding(.vertical, 12)
+                .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
                 .background(.black.opacity(0.3))
             }
         }

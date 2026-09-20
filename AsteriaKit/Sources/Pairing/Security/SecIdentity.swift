@@ -82,16 +82,23 @@ extension ClientIdentity {
             throw PairingError.malformedCertificate
         }
         // Content-addressed; duplicates are expected with concurrent transports.
+        var certificateAttributes: [CFString: Any] = [
+            kSecClass: kSecClassCertificate,
+            kSecValueRef: certificate,
+        ]
+        #if os(macOS)
+        // Left to itself, the file-based keychain gives the certificate an application label that
+        // matches no stored key, so no identity is ever formed. Setting it to the public-key hash by
+        // hand pairs the two. The iOS keychain rejects the attribute outright (errSecNoSuchAttr,
+        // -25303) because it belongs to key items there, and derives kSecAttrPublicKeyHash itself.
         var exportError: Unmanaged<CFError>?
         guard let certificateKey = SecCertificateCopyKey(certificate),
               let certificateKeyDER = SecKeyCopyExternalRepresentation(certificateKey, &exportError) as Data? else {
             throw PairingError.transport("certificate public-key export failed")
         }
-        let certStatus = SecItemAdd([
-            kSecClass: kSecClassCertificate,
-            kSecValueRef: certificate,
-            kSecAttrApplicationLabel: Data(Insecure.SHA1.hash(data: certificateKeyDER)),
-        ] as CFDictionary, nil)
+        certificateAttributes[kSecAttrApplicationLabel] = Data(Insecure.SHA1.hash(data: certificateKeyDER))
+        #endif
+        let certStatus = SecItemAdd(certificateAttributes as CFDictionary, nil)
         guard certStatus == errSecSuccess || certStatus == errSecDuplicateItem else {
             throw PairingError.transport("SecItemAdd(cert)=\(certStatus)")
         }
@@ -105,9 +112,12 @@ extension ClientIdentity {
             kSecMatchLimit: kSecMatchLimitAll,
             kSecReturnRef: true,
         ] as CFDictionary, &identityResults)
-        guard queryStatus == errSecSuccess, let results = identityResults as? [CFTypeRef] else {
+        // An empty keychain answers errSecItemNotFound; that is the same "pair again" situation as a
+        // keychain full of other people's identities, so it falls through to the message below.
+        guard queryStatus == errSecSuccess || queryStatus == errSecItemNotFound else {
             throw PairingError.transport("SecItemCopyMatching(identity)=\(queryStatus)")
         }
+        let results = identityResults as? [CFTypeRef] ?? []
         let expectedCertificate = Data(certificateDER)
         for result in results where CFGetTypeID(result) == SecIdentityGetTypeID() {
             let candidate = result as! SecIdentity

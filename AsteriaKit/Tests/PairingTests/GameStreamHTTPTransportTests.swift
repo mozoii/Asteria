@@ -1,43 +1,12 @@
+#if os(macOS)
 import Foundation
 import Testing
 @testable import Pairing
 
-@Suite("GameStream HTTP transport")
+/// The curl-driven macOS transport. iOS uses a URLSession transport instead, whose pin policy is
+/// covered by `ServerCertificatePinTests`.
+@Suite("GameStream HTTP transport (curl)")
 struct GameStreamHTTPTransportTests {
-    @Test("server certificate pin requires an exact DER match")
-    func serverCertificatePinMatch() {
-        let pinned = Data([0x30, 0x82, 0x01])
-
-        #expect(GameStreamHTTPTransport.serverCertificateMatchesPin(
-            presented: pinned,
-            pinned: pinned
-        ))
-        #expect(!GameStreamHTTPTransport.serverCertificateMatchesPin(
-            presented: Data([0x30, 0x82, 0x02]),
-            pinned: pinned
-        ))
-        #expect(!GameStreamHTTPTransport.serverCertificateMatchesPin(
-            presented: nil,
-            pinned: pinned
-        ))
-        #expect(!GameStreamHTTPTransport.serverCertificateMatchesPin(
-            presented: pinned,
-            pinned: nil
-        ))
-    }
-
-    @Test("the public-key pin hash is a stable SHA-256 of the certificate's SPKI")
-    func pinHashIsStableSha256() throws {
-        let identity = try ClientIdentity.generate()
-
-        let first = try #require(GameStreamHTTPTransport.publicKeyPinHash(for: Data(identity.certificateDER)))
-        let second = GameStreamHTTPTransport.publicKeyPinHash(for: Data(identity.certificateDER))
-
-        #expect(first == second)
-        // base64 of a SHA-256 digest is 44 characters.
-        #expect(first.count == 44)
-    }
-
     @Test("a secure request before a pin is captured fails closed")
     func secureRequestWithoutPinFailsClosed() async throws {
         let identity = try ClientIdentity.generate()
@@ -164,3 +133,4 @@ struct GameStreamHTTPTransportTests {
         return scriptURL
     }
 }
+#endif

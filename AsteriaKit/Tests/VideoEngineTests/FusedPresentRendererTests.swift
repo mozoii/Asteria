@@ -4,7 +4,7 @@ import Metal
 
 /// Single-pass CSC + dither straight into the drawable (no intermediate): verifies the fused path reproduces the
 /// two-pass YCbCr→RGB math and honours the target pixel format.
-@Suite("Fused present renderer (CSC direct to drawable)")
+@Suite("Fused present renderer (CSC direct to drawable)", .enabled(if: Hardware.hasRenderPipeline, "requires a Metal GPU"))
 struct FusedPresentRendererTests {
     /// Render a solid NV12 buffer through the fused renderer into a fresh target and return the centre row's R values.
     static func present(y: UInt8, cb: UInt8, cr: UInt8,

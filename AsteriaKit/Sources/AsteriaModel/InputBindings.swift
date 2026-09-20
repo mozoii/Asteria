@@ -29,7 +29,7 @@ public enum StreamAction: String, Codable, CaseIterable, Sendable, Identifiable 
         case .toggleOverlayMenu: return "Bring up the in-stream menu (resume, end, quit, stats)."
         case .endStream: return "Disconnect and return to the library."
         case .toggleStats: return "Show FPS, latency, loss, and bitrate."
-        case .toggleInputCapture: return "Release the pointer back to macOS, or grab it again."
+        case .toggleInputCapture: return "Release the pointer back to this device, or grab it again."
         case .toggleMouseMode: return "Flip between Game and Desktop pointer modes mid-stream."
         case .toggleFullscreen: return "Enter or leave full-screen play."
         case .toggleMute: return "Silence the stream audio, or bring it back."

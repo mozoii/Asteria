@@ -17,11 +17,15 @@ accepted under the project's GPLv3 license (see [`LICENSE`](LICENSE)).
 ./bootstrap.sh --test      # generate project, build, sign, run the test suite
 ./bootstrap.sh --release   # optimized build
 ./bootstrap.sh --doctor    # only verify the environment (OS, chip, Xcode, Swift) and regenerate the project
+./bootstrap.sh --ios       # build the iPhone/iPad app (see README for signing)
+./bootstrap.sh --test-ios  # run the AsteriaKit suite on an iOS simulator
 ```
 
-No Apple Developer account is needed; the app is signed with a local self-signed
-identity (`Asteria Development (Self-Signed)`) that `bootstrap.sh` creates on first
-run. Run `./bootstrap.sh` once before building from Xcode.
+No Apple Developer account is needed for the Mac app; it is signed with a local
+self-signed identity (`Asteria Development (Self-Signed)`) that `bootstrap.sh`
+creates on first run. Run `./bootstrap.sh` once before building from Xcode. The
+iOS app does need a team, because iOS devices refuse self-signed code — a free
+personal team is enough. See [`README.md`](README.md#building-for-iphone-and-ipad).
 
 ## Development workflow
 
@@ -32,8 +36,29 @@ run. Run `./bootstrap.sh` once before building from Xcode.
   the `Asteria/` app target, or after changing `project.yml`, run
   `xcodegen generate`. Never hand-edit `Asteria.xcodeproj/project.pbxproj`;
   it is generated output.
+- **Build both apps** - `Asteria/` is shared by the macOS and iOS targets, so a
+  change to anything outside `Asteria/Platform/` has to build for both.
 - **One feature per PR** - Keep pull requests focused on a single feature or
   fix so they stay easy to review and revert.
+
+## Platform code
+
+The two app targets compile the same sources. Everything that names an
+AppKit or UIKit type lives under `Asteria/Platform/macOS/` or
+`Asteria/Platform/iOS/`, and each target excludes the other's folder — so a
+file in a platform folder needs no `#if os(...)` and a file outside one should
+need no platform import.
+
+When a screen needs something platform-specific, add a **seam**: one type or
+view modifier with the same name and shape in both folders (`DisplayProbe`,
+`SystemClipboard`, `streamWindowChrome`, `PlatformImage`). Shared code calls the
+seam and stays readable; the platform difference sits in one small file with a
+comment saying why the platforms differ. `PlatformCopy` does the same job for
+user-facing wording that names the device.
+
+`AsteriaKit` is shared wholesale and uses `#if os(macOS)` in the handful of
+places where a framework genuinely differs (the HTTPS transport, audio output
+sizing, display reconfiguration).
 
 ## Code style
 

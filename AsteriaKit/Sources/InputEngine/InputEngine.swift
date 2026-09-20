@@ -307,12 +307,43 @@ public final class InputEngine: @unchecked Sendable, DeviceActuator, LocalInputS
         }
     }
 
+    #if os(macOS)
     // GCMouse/GCKeyboard drive mouse+keyboard raw, off the main thread; these NSEvent entries from
     // StreamCaptureView are inert (it owns focus/recapture) except feedAbsolutePointer for desktop mode.
     public func feedKey(scancode: Int, pressed: Bool) {}
     public func feedRelativePointer(deltaX: Double, deltaY: Double) {}
     public func feedMouseButton(_ button: LocalMouseButton, down: Bool) {}
     public func feedScroll(preciseX: Double, preciseY: Double) {}
+    #else
+    // On iOS these are live: GCMouse/GCKeyboard still drive attached hardware, but touch input has no
+    // GameController equivalent, so the touch overlay reaches the wire through this sink.
+    public func feedKey(scancode: Int, pressed: Bool) {
+        queue.async { [self] in core.keyChanged(scancode: scancode, pressed: pressed) }
+    }
+
+    public func feedRelativePointer(deltaX: Double, deltaY: Double) {
+        queue.async { [self] in core.feedRelativePointer(deltaX: deltaX, deltaY: deltaY) }
+    }
+
+    public func feedMouseButton(_ button: LocalMouseButton, down: Bool) {
+        let code = Self.wireButton(button)
+        queue.async { [self] in core.feedMouseButton(code, down: down) }
+    }
+
+    public func feedScroll(preciseX: Double, preciseY: Double) {
+        queue.async { [self] in core.feedScroll(preciseX: preciseX, preciseY: preciseY) }
+    }
+
+    private static func wireButton(_ button: LocalMouseButton) -> UInt8 {
+        switch button {
+        case .left: return InputEncoder.mouseButtonLeft
+        case .right: return InputEncoder.mouseButtonRight
+        case .middle: return InputEncoder.mouseButtonMiddle
+        case .extra1: return InputEncoder.mouseButtonX1
+        case .extra2: return InputEncoder.mouseButtonX2
+        }
+    }
+    #endif
 
     public func feedAbsolutePointer(viewX: Int, viewY: Int, viewWidth: Int, viewHeight: Int,
                                     eventAgeNanos: UInt64) {

@@ -2,32 +2,15 @@ import SwiftUI
 import AsteriaKit
 
 /// Shared glass tint so in-stream surfaces read the same over video.
-private let streamGlassTint = Color.black.opacity(0.5)
+let streamGlassTint = Color.black.opacity(0.5)
 
-/// A menu item's key equivalent, saved so it can be restored after immersive full screen suppresses it.
-private struct SavedShortcut {
-    let item: NSMenuItem
-    let key: String
-    let mods: NSEvent.ModifierFlags
-}
-
-private final class StreamContainerPresence {
-    var generation = 0
-}
-
-/// Full-bleed live stream: connects on appear, presents the video layer, and routes hotkeys + full screen.
+/// Full-bleed live stream: connects on appear, presents the video layer, and routes hotkeys.
+///
+/// Everything that depends on how the platform frames a stream — window level and full screen on
+/// macOS, scene phase and orientation on iOS — lives behind `streamWindowChrome`, which also owns
+/// the transition out of the stream so each platform can unwind its own chrome first.
 struct StreamContainerView: View {
     @State private var controller: StreamController
-    @State private var window: NSWindow?
-    @State private var didEnterFullscreen = false
-    @State private var fullscreenFrame: NSRect = .zero
-    @State private var libraryFrame: NSRect?
-    @State private var savedLevel: NSWindow.Level = .normal
-    @State private var savedShadow = true
-    @State private var savedPresentation: NSApplication.PresentationOptions = []
-    @State private var clearedShortcuts: [SavedShortcut] = []
-    @State private var didResizeForWindowedMode = false
-    @State private var presence = StreamContainerPresence()
     private let keybindings: Keybindings
     var onClose: () -> Void
 
@@ -62,31 +45,8 @@ struct StreamContainerView: View {
             Color.black.ignoresSafeArea()
             content
         }
-        .background(WindowAccessor { newWindow in
-            window = newWindow
-            if let newWindow, controller.phase == .streaming {
-                scheduleWindowedTitleBarSetting(for: newWindow)
-            }
-            // Window can resolve after .streaming on a reconnect, so re-attempt here or the entry is lost.
-            if let newWindow { enterFullscreenIfStreaming(newWindow) }
-        })
         .task { if !isRunningInPreview { await controller.connect() } }
-        .onChange(of: controller.phase) { _, phase in
-            if phase == .streaming, let window {
-                scheduleWindowedTitleBarSetting(for: window)
-                enterFullscreenIfStreaming(window)
-            }
-            if phase == .ended { exitFullscreenIfNeeded(); onClose() }
-        }
-        .onAppear {
-            presence.generation += 1
-            controller.onToggleFullscreen = toggleFullscreen
-        }
-        .onDisappear {
-            let closingWindow = window
-            scheduleTeardownIfStillAbsent(window: closingWindow, frame: libraryFrame,
-                                          generation: presence.generation)
-        }
+        .streamWindowChrome(controller: controller, onClose: onClose)
     }
 
     @ViewBuilder private var content: some View {
@@ -102,7 +62,7 @@ struct StreamContainerView: View {
             statusScreen(spinner: false, title: "Connection lost",
                          detail: "The stream to \(controller.title) dropped. Reconnecting will restart the game on the host.") {
                 Button("Reconnect") { controller.reconnect() }.buttonStyle(.borderedProminent)
-                Button("Back to library") { exitAndClose() }
+                Button("Back to library") { onClose() }
             }
         case .streaming, .ended:
             if let layer = controller.videoLayer {
@@ -119,6 +79,7 @@ struct StreamContainerView: View {
                     }
                     .overlay { if controller.showMenu { StreamOverlayMenu(controller: controller) } }
                     .overlay { if controller.resumeStalled { resumeStalledPrompt } }
+                    .streamTouchControls(controller: controller)
                     .animation(.easeInOut(duration: 0.15), value: controller.showMenu)
             } else {
                 statusScreen(spinner: true, title: "Starting…", detail: nil) { EmptyView() }
@@ -183,169 +144,19 @@ struct StreamContainerView: View {
 
     /// Bottom prompt shown while input is released (not via the menu): how to recapture and reach the menu.
     private var recapturePrompt: String {
+        #if os(macOS)
         var parts = ["Click to capture input"]
+        #else
+        var parts = ["Tap to capture input"]
+        #endif
         if let menu = keybindings.keyboard[.toggleOverlayMenu], !menu.isEmpty {
             parts.append("\(menu.displayString) for menu")
         }
         return parts.joined(separator: " · ")
     }
-
-    private func toggleFullscreen() {
-        guard let window else { return }
-        if didEnterFullscreen { exitImmersiveFullscreen(window) } else { enterImmersiveFullscreen(window) }
-    }
-
-    /// Enter full screen once streaming and the window both exist; idempotent so it can't double-enter.
-    private func enterFullscreenIfStreaming(_ window: NSWindow) {
-        guard controller.startFullscreen, controller.phase == .streaming, !didEnterFullscreen else { return }
-        enterImmersiveFullscreen(window)
-    }
-
-    private func exitFullscreenIfNeeded() {
-        guard didEnterFullscreen, let window else { return }
-        exitImmersiveFullscreen(window)
-    }
-
-    /// Immersive full screen: no Space transition (it severs GCMouse/GCKeyboard HID routing); drops only `.titled`
-    /// (a title-less window can't be key, suppressing ⌘-Q/W/M/H which GCKeyboard relays to the host); re-inserted on exit.
-    private func enterImmersiveFullscreen(_ window: NSWindow) {
-        guard !didEnterFullscreen, let screen = window.screen ?? NSScreen.main else { return }
-        fullscreenFrame = window.frame
-        savedLevel = window.level
-        savedShadow = window.hasShadow
-        savedPresentation = NSApp.presentationOptions
-        suppressMenuShortcuts()
-        setTitleBarVisible(false, on: window)
-        window.hasShadow = false   // the frame shadow rims the screen-covering window as a thin white outline
-        NSApp.presentationOptions = [.hideMenuBar, .hideDock]
-        window.level = NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue + 1)   // cover the menu bar
-        window.setFrame(screen.frame, display: true)
-        window.makeKeyAndOrderFront(nil)
-        didEnterFullscreen = true
-    }
-
-    private func exitImmersiveFullscreen(_ window: NSWindow) {
-        guard didEnterFullscreen else { return }
-        NSApp.presentationOptions = savedPresentation
-        applyConfiguredWindowedTitleBar(to: window)
-        window.hasShadow = savedShadow
-        window.level = savedLevel
-        window.setFrame(fullscreenFrame, display: true)
-        restoreMenuShortcuts()
-        didEnterFullscreen = false
-    }
-
-    private func applyWindowedTitleBarSetting(to window: NSWindow) {
-        guard !didEnterFullscreen else { return }
-        applyConfiguredWindowedTitleBar(to: window)
-        resizeForWindowedStreamIfNeeded(window)
-    }
-
-    /// SwiftUI resolves windows and publishes phase changes while AppKit may be enumerating its view tree.
-    /// Defer frame-view rebuilding until that traversal finishes.
-    private func scheduleWindowedTitleBarSetting(for window: NSWindow) {
-        DispatchQueue.main.async {
-            guard self.window === window, controller.phase == .streaming else { return }
-            applyWindowedTitleBarSetting(to: window)
-        }
-    }
-
-    private func applyConfiguredWindowedTitleBar(to window: NSWindow) {
-        setTitleBarVisible(!controller.hideTitleBarInWindowedMode, on: window)
-    }
-
-    private func scheduleWindowRestoration(for window: NSWindow, frame: NSRect?) {
-        DispatchQueue.main.async {
-            setTitleBarVisible(true, on: window)
-            if let frame { window.setFrame(frame, display: true) }
-        }
-    }
-
-    /// AppKit frame-view rebuilds can transiently detach and reattach the SwiftUI host. Only treat an
-    /// `onDisappear` without a matching reappearance as real stream teardown.
-    private func scheduleTeardownIfStillAbsent(window: NSWindow?, frame: NSRect?,
-                                               generation: Int) {
-        DispatchQueue.main.async {
-            guard presence.generation == generation else { return }
-            exitFullscreenIfNeeded()
-            if let window { scheduleWindowRestoration(for: window, frame: frame) }
-            if !isRunningInPreview { Task { await controller.disconnect() } }
-        }
-    }
-
-    private func resizeForWindowedStreamIfNeeded(_ window: NSWindow) {
-        guard !controller.startFullscreen, !didResizeForWindowedMode,
-              let pixels = controller.streamPixelSize,
-              let screen = window.screen ?? NSScreen.main else { return }
-        libraryFrame = window.frame
-        let contentSize = windowedContentSize(
-            pixels: pixels, scale: window.backingScaleFactor,
-            minimum: window.contentMinSize, maximum: screen.visibleFrame.size)
-        window.setContentSize(contentSize)
-        window.center()
-        didResizeForWindowedMode = true
-    }
-
-    private func windowedContentSize(pixels: PixelSize, scale: CGFloat,
-                                     minimum: NSSize, maximum: NSSize) -> NSSize {
-        let aspect = CGFloat(pixels.width) / CGFloat(pixels.height)
-        var width = max(CGFloat(pixels.width) / scale, minimum.width,
-                        minimum.height * aspect)
-        var height = width / aspect
-        let fit = min(1, maximum.width / width, maximum.height / height)
-        width *= fit
-        height *= fit
-        return NSSize(width: width.rounded(), height: height.rounded())
-    }
-
-    /// Changing the style mask rebuilds AppKit's frame view. Avoid a same-value write when the accessor
-    /// reattaches during that rebuild, or nested subview enumeration eventually trips an AppKit assertion.
-    private func setTitleBarVisible(_ visible: Bool, on window: NSWindow) {
-        guard window.styleMask.contains(.titled) != visible else { return }
-        if visible {
-            window.styleMask.insert(.titled)
-        } else {
-            window.styleMask.remove(.titled)
-        }
-    }
-
-    /// Clear the key equivalents of the standard destructive menu commands so they can't fire locally while
-    /// streaming full screen; restored on exit.
-    private func suppressMenuShortcuts() {
-        let blocked: Set<Selector> = [
-            #selector(NSApplication.terminate(_:)), #selector(NSApplication.hide(_:)),
-            #selector(NSWindow.performClose(_:)), #selector(NSWindow.performMiniaturize(_:)),
-        ]
-        clearedShortcuts.removeAll()
-        func walk(_ menu: NSMenu) {
-            for item in menu.items {
-                if let action = item.action, blocked.contains(action), !item.keyEquivalent.isEmpty {
-                    clearedShortcuts.append(SavedShortcut(item: item, key: item.keyEquivalent,
-                                                          mods: item.keyEquivalentModifierMask))
-                    item.keyEquivalent = ""
-                }
-                if let sub = item.submenu { walk(sub) }
-            }
-        }
-        if let menu = NSApp.mainMenu { walk(menu) }
-    }
-
-    private func restoreMenuShortcuts() {
-        for s in clearedShortcuts {
-            s.item.keyEquivalent = s.key
-            s.item.keyEquivalentModifierMask = s.mods
-        }
-        clearedShortcuts.removeAll()
-    }
-
-    /// Leave full screen (if we entered it) and return to the library — used from the connection-lost overlay.
-    private func exitAndClose() {
-        exitFullscreenIfNeeded()
-        onClose()
-    }
 }
 
-private struct StreamToastView: View {
+struct StreamToastView: View {
     let toast: StreamToast
 
     private var icon: String {
@@ -402,8 +213,8 @@ private struct StreamControlsOverlay: View {
     }
 }
 
-/// Navigable with the mouse, arrow keys, and the controller d-pad/A/B; tap-out resumes. Liquid Glass card.
-private struct StreamOverlayMenu: View {
+/// Navigable with the pointer, arrow keys, and the controller d-pad/A/B; tap-out resumes. Liquid Glass card.
+struct StreamOverlayMenu: View {
     let controller: StreamController
 
     var body: some View {
