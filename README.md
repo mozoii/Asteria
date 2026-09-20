@@ -25,7 +25,7 @@ may be better for them.
 - **Adaptive bitrate** - Stream quality reacts to network conditions in real
   time, with prefer-quality or prefer-latency behavior per connection.
   Requires [Vibepollo](https://github.com/Nonary/Vibepollo).
-- **Hardware decoding** - H.264, HEVC (10-bit), and AV1.
+- **Hardware decoding** - H.264 and HEVC (10-bit).
 - **HDR and MetalFX** - HDR/EDR output and MetalFX upscaling on supported
   displays.
 - **Game Mode** - Supports Game Mode, so the system can optimize the device for
@@ -33,7 +33,7 @@ may be better for them.
 - **Input** - Keyboard and mouse support with two modes: Desktop and Game.
   Desktop optimizes the pointer for general use like browsing or remote
   desktop work, while Game uses Apple's Game Controller framework. Gamepads
-  are supported, with rumble. On iPhone and iPad, touch doubles as a trackpad:
+  are supported, with rumble. On iPhone, touch doubles as a trackpad:
   drag to move, tap to click, two fingers for right-click and scrolling, and
   three fingers to open the in-stream menu.
 - **In-stream menu** - An overlay during streaming for quick actions like
@@ -54,26 +54,12 @@ may be better for them.
 
 ## Requirements
 
-- macOS 26 (Tahoe) or later on Apple Silicon (`arm64`), or iOS/iPadOS 26 or
-  later.
+- macOS 26 (Tahoe) or later on Apple Silicon (`arm64`), or iOS 26+.
 - A Windows PC on the same network running
   [Sunshine](https://app.lizardbyte.dev/Sunshine/) or one of its forks
   (e.g. [Apollo](https://github.com/ClassicOldSong/Apollo)).
 - Building for either platform needs a Mac (macOS 26+, Apple Silicon) with
   Xcode.
-
-### Platform differences
-
-Everything above works on both platforms. Two things differ, because the
-platform differs:
-
-- **Display mode** - macOS can stream into a resizable window or windowed full
-  screen. An iOS stream always fills the screen, so the Window settings and the
-  "toggle full screen" hotkey aren't shown there.
-- **Stats overlay** - the battery line shows charge and state on both, but iOS
-  publishes no time-remaining estimate or per-app power figure, so those two
-  read `—`.
-
 
 ## Screenshots
 
@@ -104,7 +90,7 @@ Build requirements:
 Signing is ad-hoc ("Sign to Run Locally"), so no Apple Developer account is
 required for the Mac app.
 
-### Building for iPhone and iPad
+### Building for iPhone
 
 ```bash
 ./bootstrap.sh --ios             # build for a connected device
