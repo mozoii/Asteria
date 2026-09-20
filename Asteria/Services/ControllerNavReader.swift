@@ -131,6 +131,7 @@ final class ControllerNavReader: ObservableObject {
     }
 
     private func emit(_ dir: Dir) {
+        ControllerActivity.shared.noteInput()
         pending.append(dir)
         tick &+= 1
     }

@@ -103,28 +103,34 @@ struct SettingsView: View {
         }
     }
 
+    /// Top-aligned so the Back button stays put: some sections add a subtitle under the title, and
+    /// centre alignment slid the button down with it as the tabs changed.
     private var header: some View {
-        HStack(alignment: .center, spacing: 14) {
-            Button { onClose() } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "chevron.left")
-                    Text("Back")
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 14) {
+                Button { onClose() } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "chevron.left")
+                        Text("Back")
+                    }
+                    .font(.system(size: 14, weight: .semibold))
+                    .padding(.horizontal, 14).frame(height: 38)
+                    .background(AsteriaTheme.surface, in: .rect(cornerRadius: 11))
                 }
-                .font(.system(size: 14, weight: .semibold))
-                .padding(.horizontal, 14).frame(height: 38)
-                .background(AsteriaTheme.surface, in: .rect(cornerRadius: 11))
-            }
-            .buttonStyle(.plain)
-            .controllerFocusRing(highlight == .back, radius: 11)
+                .buttonStyle(.plain)
+                .controllerFocusRing(highlight == .back, radius: 11)
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Settings").font(.system(size: 28, weight: .bold))
-                if let subtitle {
-                    Text(subtitle).font(.system(size: 13)).foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Settings").font(.system(size: 28, weight: .bold))
+                        .frame(minHeight: 38)   // the Back button's height, so both sit on one line
+                    if let subtitle {
+                        Text(subtitle).font(.system(size: 13)).foregroundStyle(.secondary)
+                    }
                 }
+                Spacer()
+                if showScopeSwitch && !isCompact { scopeSwitch }
             }
-            Spacer()
-            if showScopeSwitch { scopeSwitch }
+            if showScopeSwitch && isCompact { scopeSwitch }
         }
         .padding(.horizontal, deckGutter).padding(.top, 26).padding(.bottom, 8)
     }
@@ -607,7 +613,7 @@ struct SettingsView: View {
                     store.draft.resolution = resolution
                 }
             } + [
-                DeckMenuItem(PlatformCopy.matchDisplayLabel, detail: "Native resolution",
+                DeckMenuItem(PlatformCopy.matchDisplayLabel, detail: matchDisplayDetail,
                              selected: store.draft.resolution == .matchDisplay) {
                     store.draft.resolution = .matchDisplay
                 },
@@ -688,6 +694,13 @@ struct SettingsView: View {
 
     private func selectedIndex(for label: String) -> Int {
         menuItems(for: label).firstIndex(where: \.selected) ?? 0
+    }
+
+    /// The size "Match display" resolves to, so the user can see it is the landscape size a stream
+    /// actually plays at (a phone reports its panel portrait-first).
+    private var matchDisplayDetail: String {
+        guard let size = store.capabilities.displaySize else { return "Native resolution" }
+        return "\(size.width) × \(size.height)"
     }
 
     private var resolutionLabel: String {
@@ -1604,28 +1617,33 @@ struct AboutSettingsSection: View {
 
     @State private var showWhatsNew = false
     @State private var versionHovering = false
-    @State private var hasWhatsNew = false
 
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: 6) {
                 Image("Icon").resizable().scaledToFit().frame(width: 64, height: 64)
                 Text("Asteria").font(.title2.weight(.semibold))
+                // Always tappable: the sheet says so itself when no notes exist for this version.
+                // A disabled caption looked identical to a live one on a phone, where nothing hovers.
                 Button { showWhatsNew = true } label: {
-                    Text(version).font(.caption)
-                        .foregroundStyle(hasWhatsNew && versionHovering
-                                         ? AnyShapeStyle(AsteriaTheme.accent)
-                                         : AnyShapeStyle(.secondary))
+                    HStack(spacing: 4) {
+                        Text(version)
+                        Image(systemName: "chevron.right").font(.system(size: 9, weight: .semibold))
+                    }
+                    .font(.caption)
+                    .foregroundStyle(versionHovering ? AnyShapeStyle(AsteriaTheme.accent)
+                                                     : AnyShapeStyle(.secondary))
+                    .padding(.horizontal, 10).padding(.vertical, 6)
+                    .contentShape(.rect)
                 }
                 .buttonStyle(.plain)
-                .disabled(!hasWhatsNew)
-                .linkPointerStyle(hasWhatsNew)
+                .linkPointerStyle(true)
                 .onHover { versionHovering = $0 }
+                .accessibilityLabel("\(version), show release notes")
                 Text("A low-latency GameStream client for \(PlatformCopy.osName).")
                     .font(.caption).foregroundStyle(.secondary)
             }
             .sheet(isPresented: $showWhatsNew) { WhatsNewSheet() }
-            .task { hasWhatsNew = await WhatsNew.currentChangelog() != nil }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 18)
 
