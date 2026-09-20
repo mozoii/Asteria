@@ -38,6 +38,10 @@ personal team is enough. See [`README.md`](README.md#building-for-iphone-and-ipa
   it is generated output.
 - **Build both apps** - `Asteria/` is shared by the macOS and iOS targets, so a
   change to anything outside `Asteria/Platform/` has to build for both.
+- **Every platform, every feature** - A feature is done when it works on every
+  platform Asteria supports, currently macOS and iOS (iPhone), not
+  when it works on the one you built it on. If a platform genuinely can't
+  support it, say so in the PR.
 - **One feature per PR** - Keep pull requests focused on a single feature or
   fix so they stay easy to review and revert.
 
