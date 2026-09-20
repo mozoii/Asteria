@@ -43,6 +43,7 @@
 		76FDA06FBE3734CD8DAAADB4 /* HostListStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10114FD66CFC364D9F82802D /* HostListStore.swift */; };
 		79117BEBA8F7B3C2857059D6 /* SystemClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF23E259337447E4DA6CBA35 /* SystemClipboard.swift */; };
 		7968E0A3DD404EACA948A0C2 /* StreamInputCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DF03A918E7C4BA33B3CA30F /* StreamInputCapture.swift */; };
+		829329355ABA9AF926C73F77 /* ReleaseNotesPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35723E5CBA3D3481F7FCAD21 /* ReleaseNotesPresentation.swift */; };
 		82B80231DA9F74B2074BC7D3 /* StreamWindowChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 312F6A953A1C2A21FC3A9692 /* StreamWindowChrome.swift */; };
 		875E72C6E7FBF11CFED5C1BF /* ClipboardSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6909AD64A2CF30D8F07218F /* ClipboardSource.swift */; };
 		891E66395A00629CA7A62CBE /* ThirdPartyLicenses.md in Resources */ = {isa = PBXBuildFile; fileRef = 5D4F533C0BEC0D116FC6BB2E /* ThirdPartyLicenses.md */; };
@@ -75,6 +76,7 @@
 		E221AC1113FEFBBC2E20B9D2 /* ControllerNavReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7848330301DB2844D4B6F2E8 /* ControllerNavReader.swift */; };
 		E23C0BFD4A337A9B5D2AC1DC /* PlatformImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DB4F4EDDE744E3617FCA4B8 /* PlatformImage.swift */; };
 		ED61C4C6DB42F495C15BF49D /* LEDColorPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA9A576B1921749AFAA6E51E /* LEDColorPicker.swift */; };
+		ED871F3AD9AFC9C75662FE3F /* ReleaseNotesPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F754177BCB2F98DDA185799 /* ReleaseNotesPresentation.swift */; };
 		F06FAABC36CF77B0FA5DCFF1 /* AppLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6DCEE30CC68B464BC44E37 /* AppLibraryStore.swift */; };
 		F1C1BADBD245E1DD60C5CE6C /* AppLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF5BB2CA1F4F0A071EDF52D2 /* AppLibraryView.swift */; };
 		F2A4855CDF8F9EDA8D4F8C3E /* StreamView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD8DF7EEFE95D20D06FC09CD /* StreamView.swift */; };
@@ -98,6 +100,7 @@
 		3011537676D883DF15CA7A4D /* ChordRecorderKeyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChordRecorderKeyboard.swift; sourceTree = "<group>"; };
 		312F6A953A1C2A21FC3A9692 /* StreamWindowChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamWindowChrome.swift; sourceTree = "<group>"; };
 		33EA425C50D51BC1E8B1C7F8 /* Asteria.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Asteria.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		35723E5CBA3D3481F7FCAD21 /* ReleaseNotesPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseNotesPresentation.swift; sourceTree = "<group>"; };
 		370BCF88620252DD55FE2809 /* TouchInputOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchInputOverlay.swift; sourceTree = "<group>"; };
 		3AFDC53EC955A97A03F7CF0C /* PlatformImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformImage.swift; sourceTree = "<group>"; };
 		46BC6CB839C2778B8B78C1B6 /* ScreenSleepGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSleepGuard.swift; sourceTree = "<group>"; };
@@ -114,6 +117,7 @@
 		7D20C636BB1E05147BE3DC04 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7DF03A918E7C4BA33B3CA30F /* StreamInputCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamInputCapture.swift; sourceTree = "<group>"; };
 		8F575C286121BE5649E3B123 /* SystemClipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemClipboard.swift; sourceTree = "<group>"; };
+		8F754177BCB2F98DDA185799 /* ReleaseNotesPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseNotesPresentation.swift; sourceTree = "<group>"; };
 		90B1FF020645AA4E4D1A664D /* LocalPowerTelemetry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalPowerTelemetry.swift; sourceTree = "<group>"; };
 		9232AC5A4C34134998723F61 /* AsteriaMobile.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AsteriaMobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		957337C4E1BF74FB9A8FC6F7 /* AboutPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutPanel.swift; sourceTree = "<group>"; };
@@ -228,6 +232,7 @@
 				E23E52972C6C518E766977D4 /* LEDColorPicker.swift */,
 				90B1FF020645AA4E4D1A664D /* LocalPowerTelemetry.swift */,
 				1DB4F4EDDE744E3617FCA4B8 /* PlatformImage.swift */,
+				35723E5CBA3D3481F7FCAD21 /* ReleaseNotesPresentation.swift */,
 				46BC6CB839C2778B8B78C1B6 /* ScreenSleepGuard.swift */,
 				7DF03A918E7C4BA33B3CA30F /* StreamInputCapture.swift */,
 				AD8DF7EEFE95D20D06FC09CD /* StreamView.swift */,
@@ -270,6 +275,7 @@
 				BA9A576B1921749AFAA6E51E /* LEDColorPicker.swift */,
 				29D917EC92627E3F812A7397 /* LocalPowerTelemetry.swift */,
 				3AFDC53EC955A97A03F7CF0C /* PlatformImage.swift */,
+				8F754177BCB2F98DDA185799 /* ReleaseNotesPresentation.swift */,
 				74701585D7A68988A2F707A7 /* ScreenSleepGuard.swift */,
 				E6E2EAEB657F96C1206B545B /* StreamInputCapture.swift */,
 				A65D74CCEA7DFF9B5140CFDF /* StreamView.swift */,
@@ -446,6 +452,7 @@
 				65555A8AF5317D47E4E99E10 /* PairingScreenView.swift in Sources */,
 				DCE2B7E70F308717C629A373 /* PlatformCopy.swift in Sources */,
 				B7AF932682E7A05AADF99D55 /* PlatformImage.swift in Sources */,
+				ED871F3AD9AFC9C75662FE3F /* ReleaseNotesPresentation.swift in Sources */,
 				FB940C2E9FD1B58B9A4EE31D /* RootView.swift in Sources */,
 				272B664175B01AAF9B0B5563 /* ScreenSleepGuard.swift in Sources */,
 				328018AA0CE18C895C56C717 /* SettingsEditor+Platform.swift in Sources */,
@@ -488,6 +495,7 @@
 				AC521834199F08CA2E3AA34D /* PairingScreenView.swift in Sources */,
 				30D7E07B4EFD81FC1ECF8333 /* PlatformCopy.swift in Sources */,
 				E23C0BFD4A337A9B5D2AC1DC /* PlatformImage.swift in Sources */,
+				829329355ABA9AF926C73F77 /* ReleaseNotesPresentation.swift in Sources */,
 				C8BB9A6A69134049D1B7EBB5 /* RootView.swift in Sources */,
 				28C8F9AEBD0F122EDBB216F4 /* ScreenSleepGuard.swift in Sources */,
 				B323EE9BDC2A50832B7C4A75 /* SettingsEditor+Platform.swift in Sources */,

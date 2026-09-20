@@ -74,7 +74,7 @@ struct RootView: View {
             }
         }
         .shellMinimumSize()
-        .sheet(isPresented: $showWhatsNew, onDismiss: { WhatsNew.recordSeen() }) { WhatsNewSheet() }
+        .releaseNotesPresentation(isPresented: $showWhatsNew, onDismiss: { WhatsNew.recordSeen() })
         .alert("Couldn't load saved PCs", isPresented: loadErrorBinding) {
             Button("OK") { store.dismissLoadError() }
         } message: {

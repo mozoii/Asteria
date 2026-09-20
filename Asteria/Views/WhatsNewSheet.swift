@@ -112,8 +112,8 @@ struct WhatsNewSheet: View {
             }
             footer
         }
-        .frame(maxWidth: 480, maxHeight: 620)
-        .background(AsteriaTheme.background)
+        .releaseNotesFrame()
+        .background(AsteriaTheme.background.ignoresSafeArea())
         .task { items = await WhatsNew.currentChangelog()?.orderedItems() ?? [] }
     }
 

@@ -1643,7 +1643,7 @@ struct AboutSettingsSection: View {
                 Text("A low-latency GameStream client for \(PlatformCopy.osName).")
                     .font(.caption).foregroundStyle(.secondary)
             }
-            .sheet(isPresented: $showWhatsNew) { WhatsNewSheet() }
+            .releaseNotesPresentation(isPresented: $showWhatsNew)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 18)
 
