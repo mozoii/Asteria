@@ -1265,6 +1265,7 @@ struct DeckMenu: View {
                 }
             }
             .padding(6)
+            .deckMenuScrolling()
             .frame(minWidth: 224)
             .background(popSurface)
             // Without this a phone turns every dropdown into a full sheet, which loses the anchor.

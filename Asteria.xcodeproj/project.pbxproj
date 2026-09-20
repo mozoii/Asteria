@@ -56,6 +56,7 @@
 		A27CA2F7FF9B41BFEAA411D5 /* AsteriaIdentityVault.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0FA30BDEC52D947B13AAAC6 /* AsteriaIdentityVault.swift */; };
 		A4111AF196640739ED9A10DB /* AppActivityObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C5F4E0ED4423D4FC3D43236 /* AppActivityObserver.swift */; };
 		A4C6AFCEC25A1BA6CE168B54 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7D20C636BB1E05147BE3DC04 /* Assets.xcassets */; };
+		A782862AB55B3C6A52F18669 /* DeckMenuScrolling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76772901F0F6972B44BE0130 /* DeckMenuScrolling.swift */; };
 		A992D5567F10E3F1F9D38792 /* ChordRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4ADCC5240706D14C9EFC63C /* ChordRecorder.swift */; };
 		A999888EB2312A212F7E2E6B /* TouchInputOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370BCF88620252DD55FE2809 /* TouchInputOverlay.swift */; };
 		AC521834199F08CA2E3AA34D /* PairingScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97169A5E0B5686095B68AC5 /* PairingScreenView.swift */; };
@@ -75,6 +76,7 @@
 		DEA91FFEE3C3C35EEB01041F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAC01ABAAFB0F2949A9B31A1 /* SettingsView.swift */; };
 		E221AC1113FEFBBC2E20B9D2 /* ControllerNavReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7848330301DB2844D4B6F2E8 /* ControllerNavReader.swift */; };
 		E23C0BFD4A337A9B5D2AC1DC /* PlatformImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DB4F4EDDE744E3617FCA4B8 /* PlatformImage.swift */; };
+		E42B0931D2A9512BFA1FCD3E /* DeckMenuScrolling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FF26E829DDD0E9CB7F59BF1 /* DeckMenuScrolling.swift */; };
 		ED61C4C6DB42F495C15BF49D /* LEDColorPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA9A576B1921749AFAA6E51E /* LEDColorPicker.swift */; };
 		ED871F3AD9AFC9C75662FE3F /* ReleaseNotesPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F754177BCB2F98DDA185799 /* ReleaseNotesPresentation.swift */; };
 		F06FAABC36CF77B0FA5DCFF1 /* AppLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6DCEE30CC68B464BC44E37 /* AppLibraryStore.swift */; };
@@ -110,6 +112,7 @@
 		5D4F533C0BEC0D116FC6BB2E /* ThirdPartyLicenses.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ThirdPartyLicenses.md; sourceTree = "<group>"; };
 		6533F3CD6D1F4AACE2E890AA /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		74701585D7A68988A2F707A7 /* ScreenSleepGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSleepGuard.swift; sourceTree = "<group>"; };
+		76772901F0F6972B44BE0130 /* DeckMenuScrolling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckMenuScrolling.swift; sourceTree = "<group>"; };
 		77BC273709447DC2A0CD4EB9 /* AsteriaAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsteriaAppDelegate.swift; sourceTree = "<group>"; };
 		77EABE75FC76F9DB3194A712 /* AsteriaTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsteriaTheme.swift; sourceTree = "<group>"; };
 		7848330301DB2844D4B6F2E8 /* ControllerNavReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerNavReader.swift; sourceTree = "<group>"; };
@@ -121,6 +124,7 @@
 		90B1FF020645AA4E4D1A664D /* LocalPowerTelemetry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalPowerTelemetry.swift; sourceTree = "<group>"; };
 		9232AC5A4C34134998723F61 /* AsteriaMobile.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AsteriaMobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		957337C4E1BF74FB9A8FC6F7 /* AboutPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutPanel.swift; sourceTree = "<group>"; };
+		9FF26E829DDD0E9CB7F59BF1 /* DeckMenuScrolling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckMenuScrolling.swift; sourceTree = "<group>"; };
 		A483E8DFC5BDB7B011F53979 /* WhatsNewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewSheet.swift; sourceTree = "<group>"; };
 		A65D74CCEA7DFF9B5140CFDF /* StreamView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamView.swift; sourceTree = "<group>"; };
 		AB5B8BB4289A22CAF61B0A36 /* DisplayProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayProbe.swift; sourceTree = "<group>"; };
@@ -228,6 +232,7 @@
 				957337C4E1BF74FB9A8FC6F7 /* AboutPanel.swift */,
 				B43B10D8F50EC9E68EC0B6DD /* AppActivityObserver.swift */,
 				3011537676D883DF15CA7A4D /* ChordRecorderKeyboard.swift */,
+				76772901F0F6972B44BE0130 /* DeckMenuScrolling.swift */,
 				114E68122EF72CD29FD87378 /* DisplayProbe.swift */,
 				E23E52972C6C518E766977D4 /* LEDColorPicker.swift */,
 				90B1FF020645AA4E4D1A664D /* LocalPowerTelemetry.swift */,
@@ -271,6 +276,7 @@
 				7C5F4E0ED4423D4FC3D43236 /* AppActivityObserver.swift */,
 				77BC273709447DC2A0CD4EB9 /* AsteriaAppDelegate.swift */,
 				B399BACCDFAE8489A885EE3A /* ChordRecorderKeyboard.swift */,
+				9FF26E829DDD0E9CB7F59BF1 /* DeckMenuScrolling.swift */,
 				AB5B8BB4289A22CAF61B0A36 /* DisplayProbe.swift */,
 				BA9A576B1921749AFAA6E51E /* LEDColorPicker.swift */,
 				29D917EC92627E3F812A7397 /* LocalPowerTelemetry.swift */,
@@ -441,6 +447,7 @@
 				1FE9192FD0AF46BB978BE6DB /* ChordRecorderKeyboard.swift in Sources */,
 				0359FCE0A1F9755E5AF4400F /* ClipboardSource.swift in Sources */,
 				32DC5874C19071C0B718F59F /* ControllerNavReader.swift in Sources */,
+				E42B0931D2A9512BFA1FCD3E /* DeckMenuScrolling.swift in Sources */,
 				1519CFCDFFF481FFBD01392C /* DisplayProbe.swift in Sources */,
 				661190B78C6266247ED7CF60 /* EscapeKey.swift in Sources */,
 				D0B01E59AC2C0E7275AB420A /* HostIdentityMetadataView.swift in Sources */,
@@ -484,6 +491,7 @@
 				06B3241EFED3789B73E673A5 /* ChordRecorderKeyboard.swift in Sources */,
 				875E72C6E7FBF11CFED5C1BF /* ClipboardSource.swift in Sources */,
 				E221AC1113FEFBBC2E20B9D2 /* ControllerNavReader.swift in Sources */,
+				A782862AB55B3C6A52F18669 /* DeckMenuScrolling.swift in Sources */,
 				FD6F08189D4E79C6DB8F4EFD /* DisplayProbe.swift in Sources */,
 				98BA52C66D25F096BD55AA86 /* EscapeKey.swift in Sources */,
 				40F33984B344862753B10D84 /* HostIdentityMetadataView.swift in Sources */,
