@@ -136,10 +136,9 @@ struct SettingsView: View {
     }
 
     private var subtitle: String? {
-        if section.supportsPerHost { return store.scope.isHost ? store.scope.title : nil }
-        if section == .appearance { return "Stats overlay and in-stream notification settings" }
-        if section == .input { return "Keyboard, mouse and controller settings that apply to all your PCs" }
-        return nil
+        guard let description = section.subtitle else { return nil }
+        if section.supportsPerHost, store.scope.isHost { return "\(store.scope.title) · \(description)" }
+        return description
     }
 
     private var showScopeSwitch: Bool { section.supportsPerHost && store.scope.isHost }
@@ -1083,6 +1082,17 @@ enum DeckSection: String, CaseIterable, Identifiable {
         }
     }
     var supportsPerHost: Bool { self == .video || self == .audio || self == .host }
+
+    var subtitle: String? {
+        switch self {
+        case .video: return "Resolution, frame rate, bitrate and codec"
+        case .audio: return "Where stream audio plays and how it's mixed"
+        case .host: return "PC host behavior during and after a stream"
+        case .input: return PlatformCopy.inputSettingsSubtitle
+        case .appearance: return "Stats overlay and in-stream notifications"
+        case .about: return "Version, release notes and licenses"
+        }
+    }
 }
 
 private struct Panel<Content: View>: View {
