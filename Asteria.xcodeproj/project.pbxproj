@@ -137,7 +137,7 @@
 		E6E2EAEB657F96C1206B545B /* StreamInputCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamInputCapture.swift; sourceTree = "<group>"; };
 		ED04087897B19D6637322B10 /* EscapeKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EscapeKey.swift; sourceTree = "<group>"; };
 		F853885B516783179EDB1E25 /* AsteriaKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = AsteriaKit; path = AsteriaKit; sourceTree = SOURCE_ROOT; };
-		"TEMP_2464BA8B-9D48-4808-B8BF-854392498670" /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Local.xcconfig; sourceTree = "<group>"; };
+		"TEMP_B1B0DD22-A363-4A65-A4EC-325B94BCEC3A" /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Local.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -306,10 +306,10 @@
 			path = Stores;
 			sourceTree = "<group>";
 		};
-		"TEMP_F9DF9398-BA31-4BFC-81B9-F798ADE8F7DA" /* AsteriaGH */ = {
+		"TEMP_309A1CAA-4DCD-4BB5-BBED-76273B9726F1" /* AsteriaGH */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_2464BA8B-9D48-4808-B8BF-854392498670" /* Local.xcconfig */,
+				"TEMP_B1B0DD22-A363-4A65-A4EC-325B94BCEC3A" /* Local.xcconfig */,
 			);
 			path = AsteriaGH;
 			sourceTree = "<group>";
@@ -508,7 +508,7 @@
 /* Begin XCBuildConfiguration section */
 		23DD804D12182E38F6B67513 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_2464BA8B-9D48-4808-B8BF-854392498670" /* Local.xcconfig */;
+			baseConfigurationReference = "TEMP_B1B0DD22-A363-4A65-A4EC-325B94BCEC3A" /* Local.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Asteria/Platform/iOS/AsteriaMobile.entitlements;
@@ -530,7 +530,7 @@
 		};
 		2B9C778DB0CD7C18B7C60944 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_2464BA8B-9D48-4808-B8BF-854392498670" /* Local.xcconfig */;
+			baseConfigurationReference = "TEMP_B1B0DD22-A363-4A65-A4EC-325B94BCEC3A" /* Local.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Asteria/Platform/iOS/AsteriaMobile.entitlements;
@@ -577,7 +577,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = Asteria/Platform/macOS/Asteria.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Asteria/Platform/macOS/Asteria-Debug.entitlements";
 				CODE_SIGN_IDENTITY = "Asteria Development (Self-Signed)";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;

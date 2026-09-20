@@ -261,9 +261,16 @@ if [ ! -d "$APP" ]; then
     exit 1
 fi
 
-echo "==> Signing $APP with '$SIGNING_IDENTITY'"
-codesign --force --deep --sign "$SIGNING_IDENTITY" "$APP"
-codesign --verify --strict "$APP"
+# xcodebuild already signed the bundle and everything nested in it with $SIGNING_IDENTITY,
+# including the entitlements and the hardened runtime. Re-signing here would drop both, so this
+# only checks the result.
+echo "==> Verifying the signature on $APP"
+codesign --verify --strict --deep "$APP"
+SIGNATURE="$(codesign -dv --verbose=2 "$APP" 2>&1)"
+case "$SIGNATURE" in
+    *"Authority=$SIGNING_IDENTITY"*) ;;
+    *) die "$APP is not signed with '$SIGNING_IDENTITY'; delete .build and re-run ./bootstrap.sh." ;;
+esac
 
 if [ "$TEST" -eq 1 ]; then
     echo "==> Running AsteriaKit test suite"

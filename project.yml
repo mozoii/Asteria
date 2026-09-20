@@ -36,6 +36,7 @@ targets:
           - "Platform/iOS/**"
           - "Platform/macOS/Info.plist"
           - "Platform/macOS/Asteria.entitlements"
+          - "Platform/macOS/Asteria-Debug.entitlements"
       - path: Assets.xcassets
     settings:
       base:
@@ -57,6 +58,9 @@ targets:
       configs:
         Debug:
           PRODUCT_BUNDLE_IDENTIFIER: io.github.mozoii.playasteria.debug
+          # Debug links the app's own code as Asteria.debug.dylib, which the hardened runtime
+          # refuses to map into a process signed by an identity with no Team ID.
+          CODE_SIGN_ENTITLEMENTS: Asteria/Platform/macOS/Asteria-Debug.entitlements
     dependencies:
       - package: AsteriaKit
         product: AsteriaKit
