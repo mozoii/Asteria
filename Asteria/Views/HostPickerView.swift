@@ -104,6 +104,9 @@ struct HostPickerView: View {
         }
     }
 
+    /// Row dividers start where the row text does: leading inset, badge, badge-to-text gap.
+    private var dividerInset: CGFloat { HostRow.leadingInset(isCompact: isCompact) + 42 + 14 }
+
     private var isFirstRun: Bool { !store.hosts.contains { $0.isPaired } }
 
     private var onlineCount: Int { store.hosts.filter { store.availability(for: $0) == .online }.count }
@@ -173,7 +176,7 @@ struct HostPickerView: View {
                 VStack(spacing: 0) {
                     ForEach(Array(orderedHosts.enumerated()), id: \.element.id) { index, host in
                         if index > 0 {
-                            Divider().overlay(Color.white.opacity(0.07)).padding(.leading, 74)
+                            Divider().overlay(Color.white.opacity(0.07)).padding(.leading, dividerInset)
                         }
                         HostRow(host: host, availability: store.availability(for: host),
                                 isFocused: highlight == .host(host.id), isCompact: isCompact) {
@@ -184,8 +187,8 @@ struct HostPickerView: View {
                             Button("Forget this PC", role: .destructive) { Task { await store.forget(host) } }
                         }
                     }
-                    Divider().overlay(Color.white.opacity(0.07)).padding(.leading, 74)
-                    AddHostRow {
+                    Divider().overlay(Color.white.opacity(0.07)).padding(.leading, dividerInset)
+                    AddHostRow(isCompact: isCompact) {
                         showingAdd = true
                     }
                 }
@@ -284,6 +287,10 @@ private struct HostRow: View {
     var isCompact = false
     var action: () -> Void
 
+    /// Shared with the Add row so its icon and title line up with the hosts above it.
+    static func leadingInset(isCompact: Bool) -> CGFloat { isCompact ? 16 : 28 }
+    static func trailingInset(isCompact: Bool) -> CGFloat { isCompact ? 12 : 20 }
+
     var body: some View {
         Button(action: action) {
             ZStack(alignment: .leading) {
@@ -322,8 +329,8 @@ private struct HostRow: View {
                         .foregroundStyle(isFocused ? AsteriaTheme.accent : .secondary)
                         .offset(x: isFocused ? 3 : 0)
                 }
-                .padding(.leading, isCompact ? 16 : 28)
-                .padding(.trailing, isCompact ? 12 : 20)
+                .padding(.leading, Self.leadingInset(isCompact: isCompact))
+                .padding(.trailing, Self.trailingInset(isCompact: isCompact))
             }
             .frame(height: 78)
             .frame(maxWidth: .infinity)
@@ -355,6 +362,7 @@ private struct DeviceBadge: View {
 }
 
 private struct AddHostRow: View {
+    var isCompact = false
     var action: () -> Void
 
     var body: some View {
@@ -372,7 +380,8 @@ private struct AddHostRow: View {
                     .font(.subheadline.weight(.semibold))
                 Spacer()
             }
-            .padding(.leading, 28).padding(.trailing, 20)
+            .padding(.leading, HostRow.leadingInset(isCompact: isCompact))
+            .padding(.trailing, HostRow.trailingInset(isCompact: isCompact))
             .frame(height: 64)
             .frame(maxWidth: .infinity)
         }
