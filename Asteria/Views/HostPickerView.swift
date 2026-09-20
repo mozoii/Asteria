@@ -335,6 +335,9 @@ private struct HostRow: View {
             .frame(height: 78)
             .frame(maxWidth: .infinity)
             .background(isFocused ? AsteriaTheme.surfaceFocused : .clear)
+            // A clear background takes no hits, so a tap or long-press on the row's empty stretch
+            // between the address and the status badge would otherwise do nothing.
+            .contentShape(.rect)
             .animation(.spring(response: 0.28, dampingFraction: 0.74), value: isFocused)
         }
         .buttonStyle(.plain)
@@ -384,6 +387,7 @@ private struct AddHostRow: View {
             .padding(.trailing, HostRow.trailingInset(isCompact: isCompact))
             .frame(height: 64)
             .frame(maxWidth: .infinity)
+            .contentShape(.rect)
         }
         .buttonStyle(.plain)
     }
