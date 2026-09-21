@@ -4,7 +4,7 @@ import CoreVideo
 import GameStreamProtocol
 @testable import VideoEngine
 
-@Suite("DecoderRenderer seam")
+@Suite("DecoderRenderer seam", .enabled(if: Hardware.hasHardwareHEVCDecode, "requires a hardware video decoder"))
 struct DecoderRendererTests {
     @Test("submits an AssembledFrame through the protocol and decodes it")
     func submitsAssembledFrame() async throws {

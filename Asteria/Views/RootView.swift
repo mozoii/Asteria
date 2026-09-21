@@ -1,5 +1,7 @@
 import SwiftUI
+#if os(macOS)
 import AppKit
+#endif
 import CoreImage
 import UserNotifications
 import AsteriaKit
@@ -19,6 +21,15 @@ struct RootView: View {
 
     /// Dev override: launch straight into onboarding even if it was completed previously.
     private let forceFirstRun = ProcessInfo.processInfo.environment["ASTERIA_FIRST_TIME_SETUP"] != nil
+
+    #if DEBUG
+    /// Dev override: open global settings on launch, so the deck's layout can be checked on a device
+    /// without tapping through the shell first.
+    private let openSettingsOnLaunch =
+        ProcessInfo.processInfo.environment["ASTERIA_OPEN_SETTINGS"] != nil
+    #else
+    private let openSettingsOnLaunch = false
+    #endif
 
     init() {
         let repository: any LibraryRepository =
@@ -62,8 +73,8 @@ struct RootView: View {
                 }
             }
         }
-        .frame(minWidth: 880, minHeight: 600)
-        .sheet(isPresented: $showWhatsNew, onDismiss: { WhatsNew.recordSeen() }) { WhatsNewSheet() }
+        .shellMinimumSize()
+        .releaseNotesPresentation(isPresented: $showWhatsNew, onDismiss: { WhatsNew.recordSeen() })
         .alert("Couldn't load saved PCs", isPresented: loadErrorBinding) {
             Button("OK") { store.dismissLoadError() }
         } message: {
@@ -82,6 +93,7 @@ struct RootView: View {
             } else {
                 WhatsNew.recordSeenIfNeeded()
             }
+            if openSettingsOnLaunch { settingsScope = .global }
             didLoad = true
         }
     }
@@ -336,7 +348,7 @@ struct OnboardingView: View {
             Color.black.opacity(0.72).ignoresSafeArea().onTapGesture { showQR = false }
             VStack(spacing: 14) {
                 if let qr = qrImage(from: guideURL) {
-                    Image(nsImage: qr).interpolation(.none).resizable()
+                    Image(platformImage: qr).interpolation(.none).resizable()
                         .frame(width: 280, height: 280)
                         .padding(16).background(.white, in: .rect(cornerRadius: 18))
                 }
@@ -450,7 +462,7 @@ struct OnboardingView: View {
     private var welcomeContent: some View {
         VStack(spacing: 16) {
             Spacer()
-            Text("Stream your PC to this Mac.")
+            Text("Stream your PC to this \(PlatformCopy.deviceNoun).")
                 .font(.system(size: 34, weight: .bold)).multilineTextAlignment(.center)
             Text("Low-latency game streaming from your Windows PC, with controller, keyboard & mouse support.")
                 .font(.system(size: 15)).foregroundStyle(.secondary)
@@ -489,7 +501,8 @@ struct OnboardingView: View {
                             .overlay(Capsule().strokeBorder(Color.white.opacity(guideHover ? 0.3 : 0.14)))
                     }
                     .buttonStyle(.plain).tint(.white).padding(.top, 4)
-                    .onHover { h in guideHover = h; if h { NSCursor.pointingHand.push() } else { NSCursor.pop() } }
+                    .onHover { guideHover = $0 }
+                    .hoverHand()
                     HStack(alignment: .top, spacing: 6) {
                         Image(systemName: "info.circle")
                         Text(apolloNotice).hoverHand()
@@ -500,7 +513,7 @@ struct OnboardingView: View {
                 if let qr = qrImage(from: guideURL) {
                     VStack(spacing: 7) {
                         Button { showQR = true } label: {
-                            Image(nsImage: qr).interpolation(.none).resizable()
+                            Image(platformImage: qr).interpolation(.none).resizable()
                                 .frame(width: 128, height: 128)
                                 .padding(8).background(.white, in: .rect(cornerRadius: 10))
                         }
@@ -548,7 +561,8 @@ struct OnboardingView: View {
                 }
                 DisclosureGroup("Not seeing it?") {
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("• Make sure the PC and this Mac are on the same Wi-Fi / network.")
+                        Text("• Make sure the PC and this \(PlatformCopy.deviceNoun) are on the same "
+                             + "Wi-Fi / network.")
                         Text("• Make sure the PC's firewall isn't blocking Sunshine.")
                     }
                     .font(.caption).foregroundStyle(.secondary).padding(.top, 4)
@@ -804,16 +818,12 @@ struct OnboardingView: View {
         return text
     }
 
-    private func qrImage(from string: String) -> NSImage? {
+    private func qrImage(from string: String) -> PlatformImage? {
         guard let filter = CIFilter(name: "CIQRCodeGenerator") else { return nil }
         filter.setValue(Data(string.utf8), forKey: "inputMessage")
         filter.setValue("M", forKey: "inputCorrectionLevel")
         guard let output = filter.outputImage else { return nil }
-        let scaled = output.transformed(by: CGAffineTransform(scaleX: 8, y: 8))
-        let rep = NSCIImageRep(ciImage: scaled)
-        let image = NSImage(size: rep.size)
-        image.addRepresentation(rep)
-        return image
+        return .rendered(output.transformed(by: CGAffineTransform(scaleX: 8, y: 8)))
     }
 
     static func codecLabel(_ codec: CodecPreference, tenBit: Bool) -> String {
@@ -834,17 +844,18 @@ struct RecoSummary {
     var codec: String
 }
 
-/// Shows the macOS pointing-hand cursor on hover so links/buttons read as clickable.
-private struct HoverHand: ViewModifier {
-    func body(content: Content) -> some View {
-        content.onHover { inside in
+extension View {
+    /// Shows the pointing-hand cursor on hover so links and buttons read as clickable. iOS has no
+    /// cursor to change for touch, and hands pointer feedback to the system for a connected mouse.
+    @ViewBuilder fileprivate func hoverHand() -> some View {
+        #if os(macOS)
+        onHover { inside in
             if inside { NSCursor.pointingHand.push() } else { NSCursor.pop() }
         }
+        #else
+        self
+        #endif
     }
-}
-
-extension View {
-    fileprivate func hoverHand() -> some View { modifier(HoverHand()) }
 }
 
 #if DEBUG

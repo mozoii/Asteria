@@ -15,6 +15,7 @@ private struct FramePlan {
     let drawSize: CGSize
 }
 
+#if os(macOS)
 /// C trampoline for `CGDisplayRegisterReconfigurationCallback`; forwards to the presenter passed as `userInfo`.
 private func presenterReconfigurationCallback(_ display: CGDirectDisplayID,
                                               _ flags: CGDisplayChangeSummaryFlags,
@@ -22,6 +23,7 @@ private func presenterReconfigurationCallback(_ display: CGDirectDisplayID,
     guard let userInfo else { return }
     Unmanaged<MetalVideoPresenter>.fromOpaque(userInfo).takeUnretainedValue().handleReconfiguration(flags)
 }
+#endif
 
 /// On-screen Metal present path driven by `CAMetalDisplayLink` on a dedicated render thread (off the main runloop).
 /// Tags the layer BT.2020 PQ + EDR for HDR streams; the host's live `setHdrMode` re-tags on the next frame.
@@ -51,9 +53,11 @@ public final class MetalVideoPresenter: NSObject, CAMetalDisplayLinkDelegate, @u
     private var renderThreadDidFinish: DispatchSemaphore?
     /// Desired running state, so a reconfiguration's resume can't revive a presenter the stream already stopped.
     private var running = false
+    #if os(macOS)
     /// True between a reconfiguration's begin and finalize callbacks, while the present path is torn down.
     private var suspendedForReconfig = false
     private var reconfigRegistered = false
+    #endif
     private let streamFps: Int
     private let displayMaxHz: Int?
     /// A non-10-bit stream can't carry PQ, so HDR is refused at init and for live `setHdrMode`.
@@ -192,6 +196,7 @@ public final class MetalVideoPresenter: NSObject, CAMetalDisplayLinkDelegate, @u
         renderThreadDidFinish = nil
     }
 
+    #if os(macOS)
     /// Tear the present path down while CoreAnimation rebuilds its display registry (sleep/lock/wake), so a live
     /// display link can't crash it; re-spawn on finalize. Runs on the main run loop, sharing state with start/stop.
     fileprivate func handleReconfiguration(_ flags: CGDisplayChangeSummaryFlags) {
@@ -218,6 +223,12 @@ public final class MetalVideoPresenter: NSObject, CAMetalDisplayLinkDelegate, @u
                                                Unmanaged.passUnretained(self).toOpaque())
         reconfigRegistered = false
     }
+    #else
+    /// iOS has no display-reconfiguration registry to guard against: the app is suspended before the
+    /// screen can change under a live display link, and the session stops the presenter on backgrounding.
+    private func registerReconfigurationCallback() {}
+    private func unregisterReconfigurationCallback() {}
+    #endif
 
     public func metalDisplayLink(_ link: CAMetalDisplayLink,
                                  needsUpdate update: CAMetalDisplayLink.Update) {

@@ -50,7 +50,8 @@ struct DecoderCapabilitiesTests {
         #expect(DecoderCapabilities().supportedFormats().isEmpty)
     }
 
-    @Test("probe reports at least one HW codec on Apple Silicon")
+    @Test("probe reports at least one HW codec on Apple Silicon",
+          .enabled(if: Hardware.hasHardwareDecoder, "requires a hardware video decoder"))
     func probeSmoke() {
         let caps = DecoderCapabilities.probe(hdrDisplay: false)
         #expect(caps.h264 || caps.hevc)

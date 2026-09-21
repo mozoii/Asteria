@@ -86,15 +86,25 @@ private extension ChangeKind {
 
 struct WhatsNewSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var items: [ChangeItem] = []
+    /// nil until the fetch settles; empty when this version has no published notes.
+    @State private var items: [ChangeItem]?
 
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     header
-                    ForEach(ChangeKind.allCases, id: \.self) { kind in
-                        group(kind, rows: items.filter { $0.kind == kind })
+                    if let items {
+                        if items.isEmpty {
+                            unavailable
+                        } else {
+                            ForEach(ChangeKind.allCases, id: \.self) { kind in
+                                group(kind, rows: items.filter { $0.kind == kind })
+                            }
+                        }
+                    } else {
+                        ProgressView().controlSize(.small)
+                            .frame(maxWidth: .infinity).padding(.vertical, 40)
                     }
                 }
                 .padding(.horizontal, 30)
@@ -102,9 +112,25 @@ struct WhatsNewSheet: View {
             }
             footer
         }
-        .frame(width: 480, height: 620)
-        .background(AsteriaTheme.background)
+        .releaseNotesFrame()
+        .background(AsteriaTheme.background.ignoresSafeArea())
         .task { items = await WhatsNew.currentChangelog()?.orderedItems() ?? [] }
+    }
+
+    private var unavailable: some View {
+        HStack(alignment: .top, spacing: 14) {
+            Image(systemName: "doc.text.magnifyingglass")
+                .font(.system(size: 17)).foregroundStyle(.secondary)
+                .frame(width: 26, alignment: .center)
+            VStack(alignment: .leading, spacing: 3) {
+                Text("No release notes yet").font(.system(size: 14, weight: .semibold))
+                Text("Notes for this version haven't been published, or they couldn't be fetched. Check your connection and try again later.")
+                    .font(.system(size: 12.5)).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.top, 24)
     }
 
     private var header: some View {

@@ -1,7 +1,6 @@
 import SwiftUI
 import Foundation
 import Combine
-import AppKit
 @preconcurrency import GameController
 import AsteriaKit
 
@@ -14,7 +13,8 @@ struct SettingsView: View {
     @State private var hasPlayStationController = false
     @State private var controllerBatteryPercentage: Int?
     @State private var controllerIsCharging = false
-    @State private var ledColorPicker = PlayStationLEDColorPicker()
+    @State private var editingLEDColor = false
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @StateObject private var nav = ControllerNavReader()
     @State private var deck = SettingsDeckNavigator()
     var onClose: () -> Void
@@ -53,7 +53,7 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AsteriaTheme.background)
         .foregroundStyle(.white)
-        .onExitCommand { onClose() }
+        .onEscapeKey { onClose() }
         .onAppear {
             refreshControllerAvailability()
             applyPlayStationLEDColor(store.inputPreferences.playStationLEDColor)
@@ -97,42 +97,72 @@ struct SettingsView: View {
         .sheet(item: $recording, onDismiss: { nav.rearm() }) { target in
             ChordRecorderSheet(target: target, input: store) { recording = nil }
         }
+        .ledColorPicker(isPresented: $editingLEDColor,
+                        color: store.inputPreferences.playStationLEDColor) { picked in
+            store.inputPreferences.playStationLEDColor = picked
+        }
     }
 
+    /// Top-aligned so the Back button stays put: some sections add a subtitle under the title, and
+    /// centre alignment slid the button down with it as the tabs changed.
     private var header: some View {
-        HStack(alignment: .center, spacing: 14) {
-            Button { onClose() } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "chevron.left")
-                    Text("Back")
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 14) {
+                Button { onClose() } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "chevron.left")
+                        Text("Back")
+                    }
+                    .font(.system(size: 14, weight: .semibold))
+                    .padding(.horizontal, 14).frame(height: 38)
+                    .background(AsteriaTheme.surface, in: .rect(cornerRadius: 11))
                 }
-                .font(.system(size: 14, weight: .semibold))
-                .padding(.horizontal, 14).frame(height: 38)
-                .background(AsteriaTheme.surface, in: .rect(cornerRadius: 11))
-            }
-            .buttonStyle(.plain)
-            .controllerFocusRing(highlight == .back, radius: 11)
+                .buttonStyle(.plain)
+                .controllerFocusRing(highlight == .back, radius: 11)
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Settings").font(.system(size: 28, weight: .bold))
-                if let subtitle {
-                    Text(subtitle).font(.system(size: 13)).foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Settings").font(.system(size: 28, weight: .bold))
+                        .frame(minHeight: 38)   // the Back button's height, so both sit on one line
+                    if let subtitle {
+                        Text(subtitle).font(.system(size: 13)).foregroundStyle(.secondary)
+                    }
                 }
+                Spacer()
+                if showScopeSwitch && !isCompact { scopeSwitch }
             }
-            Spacer()
-            if showScopeSwitch { scopeSwitch }
+            if showScopeSwitch && isCompact { scopeSwitch }
         }
-        .padding(.horizontal, 40).padding(.top, 26).padding(.bottom, 8)
+        .padding(.horizontal, deckGutter).padding(.top, 26).padding(.bottom, 8)
     }
 
     private var subtitle: String? {
-        if section.supportsPerHost { return store.scope.isHost ? store.scope.title : nil }
-        if section == .appearance { return "Stats overlay and in-stream notification settings" }
-        if section == .input { return "Keyboard, mouse and controller settings that apply to all your PCs" }
-        return nil
+        guard let description = section.subtitle else { return nil }
+        if section.supportsPerHost, store.scope.isHost { return "\(store.scope.title) · \(description)" }
+        return description
     }
 
     private var showScopeSwitch: Bool { section.supportsPerHost && store.scope.isHost }
+
+    /// Actions worth a hotkey here. An iOS stream always fills the screen, so there is no full-screen
+    /// state to toggle; the binding stays in the document and simply isn't offered.
+    static var rebindableActions: [StreamAction] {
+        PlatformCopy.supportsWindowedStreams
+            ? StreamAction.allCases
+            : StreamAction.allCases.filter { $0 != .toggleFullscreen }
+    }
+
+    /// A phone-width screen can't carry two panel columns side by side. The Mac always gets the
+    /// wide layout: its window has a minimum size that guarantees the room.
+    private var isCompact: Bool {
+        #if os(macOS)
+        false
+        #else
+        horizontalSizeClass == .compact
+        #endif
+    }
+
+    /// 40pt of air each side is generous on a Mac and most of a phone's width.
+    private var deckGutter: CGFloat { isCompact ? 16 : 40 }
 
     private var scopeSwitch: some View {
         HStack(spacing: 4) {
@@ -159,23 +189,47 @@ struct SettingsView: View {
         .controllerFocusRing(highlight == .scope(isThisPC), radius: 17)
     }
 
-    private var rail: some View {
+    /// Six tabs don't fit a phone's width. Rather than squeezing them until the titles truncate to
+    /// two letters, the rail scrolls sideways and keeps every title readable; the selected tab is
+    /// scrolled back into view, which also matters when the shoulder buttons change section.
+    @ViewBuilder private var rail: some View {
+        if isCompact {
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    railTabs
+                }
+                .onChange(of: section) { _, item in
+                    withAnimation(.easeInOut(duration: 0.2)) { proxy.scrollTo(item.rawValue, anchor: .center) }
+                }
+            }
+            .padding(.vertical, 10)
+        } else {
+            HStack(spacing: 12) {
+                railTabs
+                Spacer()
+            }
+            .padding(.horizontal, deckGutter).padding(.vertical, 10)
+        }
+    }
+
+    @ViewBuilder private var railTabs: some View {
         HStack(spacing: 12) {
             ForEach(DeckSection.allCases) { item in
                 let isSelected = item == section
                 Button { select(section: item) } label: {
                     Text(item.title)
                         .font(.system(size: 15, weight: isSelected ? .semibold : .regular))
+                        .fixedSize()
                         .foregroundStyle(isSelected ? Color.white : Color.white.opacity(0.55))
                         .padding(.horizontal, 16).frame(height: 40)
                         .background(isSelected ? AsteriaTheme.accent : AsteriaTheme.surface, in: .rect(cornerRadius: 11))
                 }
                 .buttonStyle(.plain)
                 .controllerFocusRing(highlight == .section(item.rawValue), radius: 11)
+                .id(item.rawValue)
             }
-            Spacer()
         }
-        .padding(.horizontal, 40).padding(.vertical, 10)
+        .padding(.horizontal, isCompact ? deckGutter : 0)
     }
 
     private var hints: [ControllerHint] {
@@ -221,7 +275,7 @@ struct SettingsView: View {
                         AboutSettingsSection()
                     }
                 }
-                .padding(.horizontal, 40).padding(.top, 12)
+                .padding(.horizontal, deckGutter).padding(.top, 12)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             // Keep the controller/keyboard-highlighted row on screen as navigation moves down a column.
@@ -232,10 +286,19 @@ struct SettingsView: View {
         }
     }
 
-    private func columns<L: View, R: View>(@ViewBuilder left: () -> L, @ViewBuilder right: () -> R) -> some View {
-        HStack(alignment: .top, spacing: 26) {
-            VStack(spacing: 18) { left() }.frame(maxWidth: .infinity, alignment: .top)
-            VStack(spacing: 18) { right() }.frame(maxWidth: .infinity, alignment: .top)
+    /// Side-by-side panels need width the phone doesn't have, so a compact layout stacks them into
+    /// one column. Controller navigation follows: `layout()` appends the right column to the left.
+    @ViewBuilder private func columns<L: View, R: View>(@ViewBuilder left: () -> L,
+                                                        @ViewBuilder right: () -> R) -> some View {
+        Group {
+            if isCompact {
+                VStack(spacing: 18) { left(); right() }.frame(maxWidth: .infinity, alignment: .top)
+            } else {
+                HStack(alignment: .top, spacing: 26) {
+                    VStack(spacing: 18) { left() }.frame(maxWidth: .infinity, alignment: .top)
+                    VStack(spacing: 18) { right() }.frame(maxWidth: .infinity, alignment: .top)
+                }
+            }
         }
         .disabled(inheriting).opacity(inheriting ? 0.4 : 1)
     }
@@ -270,6 +333,7 @@ struct SettingsView: View {
     private var g: StreamSettings { store.globalSettings }
 
     @ViewBuilder private var videoLeft: some View {
+        if PlatformCopy.supportsWindowedStreams {
         Panel("Window") {
             row("Display mode", subtitle: "How streams open.",
                 overridden: ov(store.draft.windowMode != g.windowMode)) {
@@ -283,6 +347,7 @@ struct SettingsView: View {
                 DeckCheckbox(isOn: $store.draft.hideTitleBarInWindowedMode,
                              enabled: store.draft.windowMode == .windowed)
             }
+        }
         }
         Panel("Display") {
             row("Resolution", overridden: ov(store.draft.resolution != g.resolution)) { menuView("Resolution", resolutionLabel) }
@@ -327,7 +392,7 @@ struct SettingsView: View {
         if store.draft.hdr { return "HDR requires the stream to be in 10-bit." }
         return store.capabilities.supportsTenBit
             ? "10-bit reduces banding, rendered to SDR."
-            : "This Mac's decoder doesn't support 10-bit."
+            : "This \(PlatformCopy.deviceNoun)'s decoder doesn't support 10-bit."
     }
 
     /// HDR needs the HDR display + 10-bit decoder AND HEVC available, since HDR is carried only over HEVC.
@@ -345,11 +410,13 @@ struct SettingsView: View {
         Panel("Output") {
             row("Channels", subtitle: "Surround is downmixed when your output is stereo.",
                 overridden: ov(store.draft.audio != g.audio)) { menuView("Channels", store.draft.audio.deckName) }
-            row("Play audio on host", subtitle: "Audio keeps playing on the PC instead of streaming to this Mac.",
+            row("Play audio on host",
+                subtitle: "Audio keeps playing on the PC instead of streaming to this "
+                    + "\(PlatformCopy.deviceNoun).",
                 overridden: ov(store.draft.playAudioOnHost != g.playAudioOnHost)) {
                 DeckCheckbox(isOn: $store.draft.playAudioOnHost)
             }
-            row("Mute when inactive", subtitle: "Mute stream audio while another app is active.",
+            row("Mute when inactive", subtitle: PlatformCopy.muteWhenInactiveDetail,
                 overridden: ov(store.draft.muteWhenInactive != g.muteWhenInactive)) {
                 DeckCheckbox(isOn: $store.draft.muteWhenInactive)
             }
@@ -362,7 +429,9 @@ struct SettingsView: View {
                 overridden: ov(store.draft.closeAppOnDisconnect != g.closeAppOnDisconnect)) {
                 DeckCheckbox(isOn: $store.draft.closeAppOnDisconnect)
             }
-            row("Sync clipboard", subtitle: "Sends the current Mac clipboard to the host. *Supported only by Apollo hosts.*",
+            row("Sync clipboard",
+            subtitle: "Sends the current \(PlatformCopy.deviceNoun) clipboard to the host. "
+                + "*Supported only by Apollo hosts.*",
                 overridden: ov(store.draft.syncClipboard != g.syncClipboard)) {
                 DeckCheckbox(isOn: $store.draft.syncClipboard)
             }
@@ -370,17 +439,19 @@ struct SettingsView: View {
     }
 
     @ViewBuilder private var inputLeft: some View {
-        Panel("Mouse") {
-            row("Mode", subtitle: store.inputPreferences.mouseMode.detail) {
-                menuView("Mode", store.inputPreferences.mouseMode.displayName)
+        if PlatformCopy.supportsKeyboardAndMouseSettings {
+            Panel("Mouse") {
+                row("Mode", subtitle: store.inputPreferences.mouseMode.detail) {
+                    menuView("Mode", store.inputPreferences.mouseMode.displayName)
+                }
+                row("Swap mouse buttons", subtitle: "Left and right click are swapped.") {
+                    DeckCheckbox(isOn: $store.inputPreferences.swapMouseButtons)
+                }
             }
-            row("Swap mouse buttons", subtitle: "Left and right click are swapped.") {
-                DeckCheckbox(isOn: $store.inputPreferences.swapMouseButtons)
-            }
-        }
-        Panel("Keyboard") {
-            row("Swap Win / Alt keys", subtitle: "Alt sends Windows, and Windows sends Alt, on the host.") {
-                DeckCheckbox(isOn: $store.inputPreferences.swapWinAltKeys)
+            Panel("Keyboard") {
+                row("Swap Win / Alt keys", subtitle: "Alt sends Windows, and Windows sends Alt, on the host.") {
+                    DeckCheckbox(isOn: $store.inputPreferences.swapWinAltKeys)
+                }
             }
         }
         Panel("Controller", trailingTitle: controllerBatteryTitle,
@@ -421,11 +492,13 @@ struct SettingsView: View {
     }
 
     @ViewBuilder private var inputRight: some View {
-        Panel("Keyboard shortcuts") {
-            ForEach(StreamAction.allCases) { action in keybindRow(action, kind: .keyboard) }
+        if PlatformCopy.supportsKeyboardAndMouseSettings {
+            Panel("Keyboard shortcuts") {
+                ForEach(Self.rebindableActions) { action in keybindRow(action, kind: .keyboard) }
+            }
         }
         Panel("Controller combos") {
-            ForEach(StreamAction.allCases) { action in keybindRow(action, kind: .gamepad) }
+            ForEach(Self.rebindableActions) { action in keybindRow(action, kind: .gamepad) }
         }
         resetShortcutsRow
     }
@@ -543,7 +616,7 @@ struct SettingsView: View {
                     store.draft.resolution = resolution
                 }
             } + [
-                DeckMenuItem("Match Mac", detail: "Native resolution",
+                DeckMenuItem(PlatformCopy.matchDisplayLabel, detail: matchDisplayDetail,
                              selected: store.draft.resolution == .matchDisplay) {
                     store.draft.resolution = .matchDisplay
                 },
@@ -626,11 +699,18 @@ struct SettingsView: View {
         menuItems(for: label).firstIndex(where: \.selected) ?? 0
     }
 
+    /// The size "Match display" resolves to, so the user can see it is the landscape size a stream
+    /// actually plays at (a phone reports its panel portrait-first).
+    private var matchDisplayDetail: String {
+        guard let size = store.capabilities.displaySize else { return "Native resolution" }
+        return "\(size.width) × \(size.height)"
+    }
+
     private var resolutionLabel: String {
         switch store.draft.resolution {
         case let .preset(w, h): return resolutionTag(PixelSize(width: w, height: h))
         case let .custom(w, h): return "\(w) × \(h)"
-        case .matchDisplay: return "Match Mac"
+        case .matchDisplay: return PlatformCopy.matchDisplayLabel
         }
     }
 
@@ -655,7 +735,7 @@ struct SettingsView: View {
     private var metalFXSubtitle: String {
         guard let target = metalFXTarget else {
             return store.capabilities.displaySize == nil
-                ? "This Mac's display resolution is unknown."
+                ? "This \(PlatformCopy.deviceNoun)'s display resolution is unknown."
                 : "The stream resolution already matches your display."
         }
         if store.draft.enableMetalFX,
@@ -721,12 +801,15 @@ struct SettingsView: View {
     /// The left/right control columns mirror the side-by-side panels (Video: Display+Encoding | Bandwidth+Playback).
     private func leftControls(for s: DeckSection) -> [String] {
         switch s {
-        case .video: return ["Display mode", "Resolution", "Frame rate", "Enable MetalFX"]
+        case .video:
+            let window = PlatformCopy.supportsWindowedStreams ? ["Display mode", "Hide title bar"] : []
+            return window + ["Resolution", "Frame rate", "Enable MetalFX"]
         case .audio: return ["Channels", "Play audio on host", "Mute when inactive"]
         case .host: return ["Close app on host", "Sync clipboard"]
         case .input:
-            var controls = ["Mode", "Swap mouse buttons", "Swap Win / Alt keys",
-                            "Swap A / B face buttons", "Show Battery Percentage"]
+            var controls = PlatformCopy.supportsKeyboardAndMouseSettings
+                ? ["Mode", "Swap mouse buttons", "Swap Win / Alt keys"] : []
+            controls += ["Swap A / B face buttons", "Show Battery Percentage"]
             if hasPlayStationController { controls += ["Emulation mode", "LED color"] }
             return controls
         case .appearance:
@@ -742,18 +825,24 @@ struct SettingsView: View {
             return ["Bitrate"] + adaptive + ["Codec", "Bit depth", "HDR"]
         case .audio, .host, .appearance: return []
         case .input:
-            return StreamAction.allCases.map { keybindFocus($0, .keyboard) }
-                + StreamAction.allCases.map { keybindFocus($0, .gamepad) }
+            let keyboard = PlatformCopy.supportsKeyboardAndMouseSettings
+                ? Self.rebindableActions.map { keybindFocus($0, .keyboard) } : []
+            return keyboard
+                + Self.rebindableActions.map { keybindFocus($0, .gamepad) }
                 + ["reset-shortcuts"]
         case .about: return []
         }
     }
 
-    /// Snapshot the live layout the navigator reasons over for the current section.
+    /// Snapshot the live layout the navigator reasons over for the current section. A compact screen
+    /// renders one column, so the right column's controls are appended rather than sitting beside.
     private func layout() -> DeckLayout {
-        DeckLayout(chrome: chromeTargets, sectionId: section.rawValue,
-                   left: leftControls(for: section), right: rightControls(for: section),
-                   inheriting: inheriting)
+        let left = leftControls(for: section)
+        let right = rightControls(for: section)
+        return DeckLayout(chrome: chromeTargets, sectionId: section.rawValue,
+                          left: isCompact ? left + right : left,
+                          right: isCompact ? [] : right,
+                          inheriting: inheriting)
     }
 
     private func syncHighlight() { deck.syncHighlight(layout()) }
@@ -810,26 +899,13 @@ struct SettingsView: View {
     }
 
     private func showPlayStationLEDColorPicker() {
-        let color = store.inputPreferences.playStationLEDColor
-        ledColorPicker.present(color: nsColor(for: color)) { color in
-            guard let rgb = color.usingColorSpace(.sRGB) else { return }
-            store.inputPreferences.playStationLEDColor = PlayStationLEDColor(
-                red: Self.colorByte(rgb.redComponent),
-                green: Self.colorByte(rgb.greenComponent),
-                blue: Self.colorByte(rgb.blueComponent),
-                opacity: Self.colorByte(rgb.alphaComponent))
-        }
+        editingLEDColor = true
     }
 
     private func color(for color: PlayStationLEDColor) -> Color {
         Color(red: Double(color.red) / 255, green: Double(color.green) / 255,
               blue: Double(color.blue) / 255)
             .opacity(Double(color.opacity) / 255)
-    }
-
-    private func nsColor(for color: PlayStationLEDColor) -> NSColor {
-        NSColor(red: CGFloat(color.red) / 255, green: CGFloat(color.green) / 255,
-                blue: CGFloat(color.blue) / 255, alpha: CGFloat(color.opacity) / 255)
     }
 
     private func applyPlayStationLEDColor(_ color: PlayStationLEDColor) {
@@ -1006,6 +1082,17 @@ enum DeckSection: String, CaseIterable, Identifiable {
         }
     }
     var supportsPerHost: Bool { self == .video || self == .audio || self == .host }
+
+    var subtitle: String? {
+        switch self {
+        case .video: return "Resolution, frame rate, bitrate and codec"
+        case .audio: return "Where stream audio plays and how it's mixed"
+        case .host: return "PC host behavior during and after a stream"
+        case .input: return PlatformCopy.inputSettingsSubtitle
+        case .appearance: return "Stats overlay and in-stream notifications"
+        case .about: return "Version, release notes and licenses"
+        }
+    }
 }
 
 private struct Panel<Content: View>: View {
@@ -1195,8 +1282,11 @@ struct DeckMenu: View {
                 }
             }
             .padding(6)
+            .deckMenuScrolling()
             .frame(minWidth: 224)
             .background(popSurface)
+            // Without this a phone turns every dropdown into a full sheet, which loses the anchor.
+            .presentationCompactAdaptation(.popover)
         }
     }
 
@@ -1337,7 +1427,7 @@ struct CustomEntrySheet: View {
             }
         }
         .padding(24)
-        .frame(width: 360)
+        .frame(maxWidth: 360)
     }
 
     @ViewBuilder private var fields: some View {
@@ -1465,8 +1555,9 @@ struct ChordRecorderSheet: View {
                 .buttonStyle(.plain).keyboardShortcut(.defaultAction).disabled(isEmpty)
             }
         }
-        .padding(28).frame(width: 480)
+        .padding(28).frame(maxWidth: 480)
         .background(Color(red: 0.067, green: 0.086, blue: 0.110))
+        .keyChordCapture(recorder, isActive: target.kind == .keyboard)
         .onAppear {
             recorder.onCancel = onClose
             recorder.start()
@@ -1544,27 +1635,33 @@ struct AboutSettingsSection: View {
 
     @State private var showWhatsNew = false
     @State private var versionHovering = false
-    @State private var hasWhatsNew = false
 
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: 6) {
                 Image("Icon").resizable().scaledToFit().frame(width: 64, height: 64)
                 Text("Asteria").font(.title2.weight(.semibold))
+                // Always tappable: the sheet says so itself when no notes exist for this version.
+                // A disabled caption looked identical to a live one on a phone, where nothing hovers.
                 Button { showWhatsNew = true } label: {
-                    Text(version).font(.caption)
-                        .foregroundStyle(hasWhatsNew && versionHovering
-                                         ? AnyShapeStyle(AsteriaTheme.accent)
-                                         : AnyShapeStyle(.secondary))
+                    HStack(spacing: 4) {
+                        Text(version)
+                        Image(systemName: "chevron.right").font(.system(size: 9, weight: .semibold))
+                    }
+                    .font(.caption)
+                    .foregroundStyle(versionHovering ? AnyShapeStyle(AsteriaTheme.accent)
+                                                     : AnyShapeStyle(.secondary))
+                    .padding(.horizontal, 10).padding(.vertical, 6)
+                    .contentShape(.rect)
                 }
                 .buttonStyle(.plain)
-                .disabled(!hasWhatsNew)
-                .pointerStyle(hasWhatsNew ? .link : .default)
+                .linkPointerStyle(true)
                 .onHover { versionHovering = $0 }
-                Text("A low-latency GameStream client for macOS.").font(.caption).foregroundStyle(.secondary)
+                .accessibilityLabel("\(version), show release notes")
+                Text("A low-latency GameStream client for the Apple ecosystem.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
-            .sheet(isPresented: $showWhatsNew) { WhatsNewSheet() }
-            .task { hasWhatsNew = await WhatsNew.currentChangelog() != nil }
+            .releaseNotesPresentation(isPresented: $showWhatsNew)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 18)
 
@@ -1658,24 +1755,6 @@ private struct LicenseText: View {
     private static func inline(_ text: String) -> AttributedString {
         let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
         return (try? AttributedString(markdown: text, options: options)) ?? AttributedString(text)
-    }
-}
-
-@MainActor
-private final class PlayStationLEDColorPicker: NSObject {
-    private var onColorChange: ((NSColor) -> Void)?
-
-    func present(color: NSColor, onColorChange: @escaping (NSColor) -> Void) {
-        self.onColorChange = onColorChange
-        let panel = NSColorPanel.shared
-        panel.color = color
-        panel.setTarget(self)
-        panel.setAction(#selector(colorChanged(_:)))
-        panel.makeKeyAndOrderFront(nil)
-    }
-
-    @objc private func colorChanged(_ panel: NSColorPanel) {
-        onColorChange?(panel.color)
     }
 }
 

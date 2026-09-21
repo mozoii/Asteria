@@ -1,6 +1,10 @@
 import SwiftUI
-import AppKit
 import AsteriaKit
+#if DEBUG
+import CoreImage
+import ImageIO
+import UniformTypeIdentifiers
+#endif
 
 /// Cover-art library for a paired host: searchable 2:3 card grid with running badge and per-app options.
 struct AppLibraryView: View {
@@ -28,6 +32,17 @@ struct AppLibraryView: View {
     }
 
     private var highlight: LibFocus? { cursor.highlight }
+
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    private var isCompact: Bool {
+        #if os(macOS)
+        false
+        #else
+        horizontalSizeClass == .compact
+        #endif
+    }
+    /// 28pt of air each side costs a phone most of a card column. The Mac keeps the wider gutter.
+    private var shellGutter: CGFloat { isCompact ? 14 : 28 }
 
     private static let gridMin: CGFloat = 150
     private static let gridSpacing: CGFloat = 22
@@ -64,7 +79,7 @@ struct AppLibraryView: View {
             if !isRunningInPreview { Task { await store.refresh() } }
         }
         .controllerNavigation(nav, focusFirst: focusFirstIfController, drain: drainNav, move: keyboardMove)
-        .onExitCommand { onBack() }
+        .onEscapeKey { onBack() }
         .confirmationDialog("Quit current game?", isPresented: confirmBinding, presenting: confirmSwitchTo) { target in
             Button("Quit & play \(target.title)", role: .destructive) {
                 Task { await store.quitRunningApp(); onLaunch(target) }
@@ -88,40 +103,47 @@ struct AppLibraryView: View {
         Binding(get: { appOptions != nil }, set: { if !$0 { appOptions = nil } })
     }
 
+    /// A phone can't fit the title, the search field and three buttons on one line: the metadata
+    /// line wrapped to three rows and the header swallowed a third of the screen. Compact widths
+    /// drop the search field to its own row and keep the metadata to a single truncating line.
     private var header: some View {
-        HStack(spacing: 14) {
-            Button { onBack() } label: { Label("PCs", systemImage: "chevron.left").padding(4) }
-                .buttonStyle(.plain)
-                .controllerFocusRing(highlight == .back, radius: 8)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(store.host.displayName).font(.title2.bold()).lineLimit(1)
-                HStack(spacing: 4) {
-                    HostIdentityMetadataView(
-                        hostSoftware: store.host.hostSoftware,
-                        fingerprint: store.host.clientFingerprint)
-                    Text("• \(store.entries.count) apps")
+        VStack(spacing: 10) {
+            HStack(spacing: 14) {
+                Button { onBack() } label: { Label("PCs", systemImage: "chevron.left").padding(4) }
+                    .buttonStyle(.plain)
+                    .controllerFocusRing(highlight == .back, radius: 8)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(store.host.displayName).font(.title2.bold()).lineLimit(1)
+                    HStack(spacing: 4) {
+                        HostIdentityMetadataView(
+                            hostSoftware: store.host.hostSoftware,
+                            fingerprint: store.host.clientFingerprint)
+                        Text("• \(store.entries.count) apps")
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
                 }
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                Spacer()
+                if !isCompact { searchField }
+                if store.isLoading { ProgressView().controlSize(.small) }
+                Button { Task { await store.refresh(forceArt: true) } } label: { Image(systemName: "arrow.clockwise").padding(6) }
+                    .buttonStyle(.plain).help("Refresh apps and box art")
+                    .controllerFocusRing(highlight == .refresh, radius: 8)
+                Button { onOpenSettings() } label: { Image(systemName: "gearshape").padding(6) }
+                    .buttonStyle(.plain).help("Settings for this PC")
+                    .controllerFocusRing(highlight == .settings, radius: 8)
             }
-            Spacer()
-            searchField
-            if store.isLoading { ProgressView().controlSize(.small) }
-            Button { Task { await store.refresh(forceArt: true) } } label: { Image(systemName: "arrow.clockwise").padding(6) }
-                .buttonStyle(.plain).help("Refresh apps and box art")
-                .controllerFocusRing(highlight == .refresh, radius: 8)
-            Button { onOpenSettings() } label: { Image(systemName: "gearshape").padding(6) }
-                .buttonStyle(.plain).help("Settings for this PC")
-                .controllerFocusRing(highlight == .settings, radius: 8)
+            if isCompact { searchField }
         }
-        .padding(.horizontal, 28).padding(.vertical, 18)
+        .padding(.horizontal, shellGutter).padding(.vertical, isCompact ? 12 : 18)
     }
 
     private var searchField: some View {
         HStack(spacing: 6) {
             Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
             TextField("Search apps", text: Binding(get: { store.searchText }, set: { store.searchText = $0 }))
-                .textFieldStyle(.plain).frame(width: 180)
+                .textFieldStyle(.plain).frame(maxWidth: isCompact ? .infinity : 180)
         }
         .padding(.horizontal, 10).padding(.vertical, 6)
         .background(AsteriaTheme.surface, in: .rect(cornerRadius: 9))
@@ -152,7 +174,7 @@ struct AppLibraryView: View {
                             .onAppear { gridCols = gridColumns(for: proxy.size.width) }
                             .onChange(of: proxy.size.width) { _, w in gridCols = gridColumns(for: w) }
                     })
-                    .padding(28)
+                    .padding(shellGutter)
                 }
                 // Scroll the highlighted card into view as controller/keyboard navigation moves below the fold.
                 .onChange(of: highlight) { _, h in
@@ -283,8 +305,8 @@ private struct AppCard: View {
     }
 
     @ViewBuilder private var cover: some View {
-        if let art, let image = NSImage(data: art) {
-            Image(nsImage: image).resizable()
+        if let art, let image = PlatformImage.decoded(from: art) {
+            Image(platformImage: image).resizable()
         } else {
             TitleCardArt(title: entry.title, isDesktop: entry.isDesktop)
         }
@@ -353,18 +375,23 @@ enum AppLibraryPreviewData {
     ]
 
     /// A solid-color PNG so one card exercises the real box-art (aspect-fill) path.
-    static func swatchPNG(_ color: NSColor) -> Data {
-        let size = NSSize(width: 60, height: 90)
-        let image = NSImage(size: size)
-        image.lockFocus()
-        color.setFill(); NSRect(origin: .zero, size: size).fill()
-        image.unlockFocus()
-        guard let tiff = image.tiffRepresentation, let rep = NSBitmapImageRep(data: tiff),
-              let png = rep.representation(using: .png, properties: [:]) else { return Data() }
-        return png
+    static func swatchPNG(_ color: CGColor) -> Data {
+        let bounds = CGRect(x: 0, y: 0, width: 60, height: 90)
+        let flat = CIImage(color: CIColor(cgColor: color)).cropped(to: bounds)
+        let data = NSMutableData()
+        guard let cgImage = CIContext().createCGImage(flat, from: bounds),
+              let png = CGImageDestinationCreateWithData(
+                data as CFMutableData, UTType.png.identifier as CFString, 1, nil)
+        else { return Data() }
+        CGImageDestinationAddImage(png, cgImage, nil)
+        guard CGImageDestinationFinalize(png) else { return Data() }
+        return data as Data
     }
 
-    static let art: [String: Data] = ["2": swatchPNG(.systemPurple), "6": swatchPNG(.systemBrown)]
+    static let art: [String: Data] = [
+        "2": swatchPNG(CGColor(red: 0.42, green: 0.28, blue: 0.70, alpha: 1)),
+        "6": swatchPNG(CGColor(red: 0.45, green: 0.33, blue: 0.22, alpha: 1)),
+    ]
 }
 
 #Preview("Library: populated") {

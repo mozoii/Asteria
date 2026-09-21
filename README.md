@@ -1,8 +1,8 @@
 # Asteria
 
-A low-latency, open-source GameStream client for macOS. Stream games from a
-Windows PC running [Sunshine](https://app.lizardbyte.dev/Sunshine/)
-to a Mac, with controller, keyboard, and mouse support.
+A low-latency, open-source GameStream client for the Apple ecosystem. Stream games
+from a Windows PC running [Sunshine](https://app.lizardbyte.dev/Sunshine/) to a
+Mac, or iPhone with controller, keyboard, and mouse support.
 
 > **No prebuilt binaries** - Asteria is build-from-source only.
 > You'll need Xcode; see [Building](#building).
@@ -14,7 +14,7 @@ UI-related quirks and thought it would be a cool challenge.
 
 This project wouldn't exist without
 [Moonlight](https://moonlight-stream.org) and their amazing work, so please
-do support them and use Moonlight for a stable experience on Mac. I see
+do support them and use Moonlight for a stable experience on Mac/iOS. I see
 this project as just another option; it may be better for some, or Moonlight
 may be better for them.
 
@@ -25,15 +25,17 @@ may be better for them.
 - **Adaptive bitrate** - Stream quality reacts to network conditions in real
   time, with prefer-quality or prefer-latency behavior per connection.
   Requires [Vibepollo](https://github.com/Nonary/Vibepollo).
-- **Hardware decoding** - H.264, HEVC (10-bit), and AV1.
+- **Hardware decoding** - H.264 and HEVC (10-bit).
 - **HDR and MetalFX** - HDR/EDR output and MetalFX upscaling on supported
   displays.
-- **Game Mode** - Supports macOS's Game Mode, so the system can optimize the
-  Mac for gaming while you stream.
+- **Game Mode** - Supports Game Mode, so the system can optimize the device for
+  gaming while you stream.
 - **Input** - Keyboard and mouse support with two modes: Desktop and Game.
   Desktop optimizes the pointer for general use like browsing or remote
   desktop work, while Game uses Apple's Game Controller framework. Gamepads
-  are supported, with rumble.
+  are supported, with rumble. On iPhone, touch doubles as a trackpad:
+  drag to move, tap to click, two fingers for right-click and scrolling, and
+  three fingers to open the in-stream menu.
 - **In-stream menu** - An overlay during streaming for quick actions like
   ending the stream, going fullscreen, muting audio, or switching pointer
   modes, without leaving your stream.
@@ -48,15 +50,16 @@ may be better for them.
   stats overlay, and settings deck, works equally well with a controller or a
   keyboard and mouse.
 - **PIN pairing** - PIN-based mutual-TLS pairing. Your PC is paired to this
-  Mac, no accounts required.
+  device, no accounts required.
 
 ## Requirements
 
-- macOS 26 (Tahoe) or later, Apple Silicon (`arm64`).
+- macOS 26 (Tahoe) or later on Apple Silicon (`arm64`), or iOS 26+.
 - A Windows PC on the same network running
   [Sunshine](https://app.lizardbyte.dev/Sunshine/) or one of its forks
   (e.g. [Apollo](https://github.com/ClassicOldSong/Apollo)).
-
+- Building for either platform needs a Mac (macOS 26+, Apple Silicon) with
+  Xcode.
 
 ## Screenshots
 
@@ -85,7 +88,33 @@ Build requirements:
 ```
 
 Signing is ad-hoc ("Sign to Run Locally"), so no Apple Developer account is
-required.
+required for the Mac app.
+
+### Building for iPhone
+
+```bash
+./bootstrap.sh --ios             # build for a connected device
+./bootstrap.sh --ios-simulator   # build for the simulator (no signing needed)
+./bootstrap.sh --test-ios        # run the AsteriaKit suite on an iOS simulator
+```
+
+An iOS device only runs code signed by an Apple-issued certificate, so the
+self-signed identity the Mac app uses won't work there. A **free** personal
+Apple ID team is enough; it provisions builds that run on your own devices for
+seven days at a time. Either set it once for the command line:
+
+```bash
+ASTERIA_DEVELOPMENT_TEAM=XXXXXXXXXX ./bootstrap.sh --ios
+```
+
+or open `Asteria.xcodeproj` and pick a team under **AsteriaMobile → Signing &
+Capabilities**. The value is stored in `Local.xcconfig`, which is gitignored;
+`Local.xcconfig.example` documents it.
+
+The simulator is useful for the shell (onboarding, pairing, the library,
+settings) but not for streaming: it has no hardware video decoder, no MetalFX,
+no pointer lock, and no haptics. Anything about latency, HDR, or upscaling has
+to be judged on a real device.
 
 ### First run
 
@@ -95,7 +124,8 @@ path to `Release`). Drag it to `/Applications` if you want to keep it, then:
 
 1. Launch Asteria. Onboarding walks you through finding a host. Hosts on your
    local network are discovered automatically; you can also add one by IP or
-   hostname.
+   hostname. On iOS, accept the local-network prompt or discovery finds
+   nothing.
 2. Asteria shows a PIN. Open Sunshine (or Apollo) on your PC and enter that
    PIN when prompted to complete pairing.
 3. Pick an app from the host's library and start streaming.

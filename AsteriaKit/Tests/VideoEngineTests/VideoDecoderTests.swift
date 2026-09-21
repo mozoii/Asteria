@@ -4,7 +4,7 @@ import CoreVideo
 import VideoToolbox
 @testable import VideoEngine
 
-@Suite("VideoDecoder round-trip (synth fixtures)")
+@Suite("VideoDecoder round-trip (synth fixtures)", .enabled(if: Hardware.hasHardwareHEVCDecode, "requires a hardware video decoder"))
 struct VideoDecoderTests {
     @Test("H.264 keyframe decodes to a CVPixelBuffer of the right size")
     func h264RoundTrip() async throws {

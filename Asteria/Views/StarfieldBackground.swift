@@ -8,7 +8,8 @@ struct StarfieldBackground: View {
     var showShootingStars = true
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.controlActiveState) private var activeState
+    /// Freeze the field when the app isn't in front: an animated Canvas costs power for nothing there.
+    @Environment(\.scenePhase) private var scenePhase
 
     private let field: Starfield
 
@@ -19,7 +20,7 @@ struct StarfieldBackground: View {
     }
 
     var body: some View {
-        let paused = reduceMotion || activeState == .inactive
+        let paused = reduceMotion || scenePhase != .active
         TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: paused)) { timeline in
             let t = timeline.date.timeIntervalSinceReferenceDate
             Canvas { context, size in

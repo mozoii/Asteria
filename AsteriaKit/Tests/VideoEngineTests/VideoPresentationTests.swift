@@ -4,7 +4,7 @@ import Metal
 import GameStreamProtocol
 import VideoEngine
 
-@Suite("Video presentation assembly")
+@Suite("Video presentation assembly", .enabled(if: Hardware.hasRenderPipeline, "requires a Metal GPU"))
 struct VideoPresentationTests {
     private let size = CGSize(width: 1920, height: 1080)
 

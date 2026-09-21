@@ -7,7 +7,7 @@ import Testing
 /// the certificate the pairing handshake registers with the host. A mismatch (stale/foreign cert
 /// paired with the tagged key) makes Sunshine-family hosts reject the pair challenge with
 /// "Certificate verification failed".
-@Suite("Keychain-backed TLS identity")
+@Suite("Keychain-backed TLS identity", .enabled(if: KeychainAvailability.isWritable, "requires a writable keychain"))
 struct TLSIdentityTests {
     @Test("makeTLSIdentity presents exactly the identity's certificate")
     func presentsIdentityCertificate() throws {

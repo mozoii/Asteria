@@ -42,15 +42,38 @@ public struct StreamCapabilities: Sendable, Equatable {
         codecs: [.h264, .hevc, .av1], supportsTenBit: true, supportsHDR: true,
         resolutionPresets: allResolutionPresets, frameRatePresets: allFrameRatePresets)
 
-    /// Build caps. The full preset ladder is always offered (the host renders the chosen mode and we scale to
-    /// the display); display capabilities drive "Match display" and the bit-rate recommendation.
+    /// Build caps. By default the full ladders are offered (the host renders the chosen mode and we
+    /// scale to the display); display capabilities drive "Match display" and the bit-rate
+    /// recommendation. `limitPresetsToDisplay` trims both ladders to what the panel can show: a
+    /// phone's screen is the only place its stream can play, so 4K or 240 fps on a 1320-row 60 Hz
+    /// panel is pure encode cost.
     public static func make(codecs: [CodecPreference], supportsTenBit: Bool, supportsHDR: Bool = false,
                             displaySize: PixelSize?, displayRefreshHz: Int?,
+                            limitPresetsToDisplay: Bool = false,
                             audio: [AudioChannels] = [.stereo, .surround51, .surround71]) -> StreamCapabilities {
         StreamCapabilities(codecs: codecs, supportsTenBit: supportsTenBit, supportsHDR: supportsHDR,
                            displaySize: displaySize, displayRefreshHz: displayRefreshHz,
-                           resolutionPresets: allResolutionPresets, frameRatePresets: allFrameRatePresets,
+                           resolutionPresets: limitPresetsToDisplay
+                               ? resolutionPresets(fitting: displaySize) : allResolutionPresets,
+                           frameRatePresets: limitPresetsToDisplay
+                               ? frameRatePresets(upTo: displayRefreshHz) : allFrameRatePresets,
                            audio: audio)
+    }
+
+    /// Ladder rungs that fit the panel in both dimensions. "Match display" covers the panel's own
+    /// size, so it is not added here. An unknown display leaves the full ladder.
+    static func resolutionPresets(fitting display: PixelSize?) -> [PixelSize] {
+        guard let display else { return allResolutionPresets }
+        return allResolutionPresets.filter { $0.width <= display.width && $0.height <= display.height }
+    }
+
+    /// The ladder cut at the panel's refresh, with the refresh itself added when it isn't a rung
+    /// (a 90 Hz panel offers 30, 60 and 90). An unknown refresh leaves the full ladder.
+    static func frameRatePresets(upTo refreshHz: Int?) -> [Int] {
+        guard let refreshHz, refreshHz > 0 else { return allFrameRatePresets }
+        var rates = allFrameRatePresets.filter { $0 <= refreshHz }
+        if !rates.contains(refreshHz) { rates.append(refreshHz) }
+        return rates
     }
 
     public func allows(codec: CodecPreference) -> Bool { codec == .auto || codecs.contains(codec) }

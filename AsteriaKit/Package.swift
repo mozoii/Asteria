@@ -4,7 +4,7 @@ import PackageDescription
 // AsteriaKit — Swift-native, headless, TDD-tested core. Apple Silicon / macOS 26+.
 let package = Package(
     name: "AsteriaKit",
-    platforms: [.macOS(.v26)],
+    platforms: [.macOS(.v26), .iOS(.v26)],
     products: [
         .library(name: "AsteriaKit", targets: ["AsteriaKit"]),
         .library(name: "GameStreamProtocol", targets: ["GameStreamProtocol"]),

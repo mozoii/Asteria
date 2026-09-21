@@ -10,7 +10,9 @@ import AsteriaModel
 struct LocalPowerTelemetry: Sendable {
     private var applicationPowerMeter = ApplicationPowerMeter()
 
-    mutating func sample(at time: Double) -> LaptopStats {
+    /// `async` to share one call shape with the iOS probe, whose read has to hop to the main actor.
+    /// Nothing here awaits: these IOKit calls can block, which is why the caller runs them off-main.
+    mutating func sample(at time: Double) async -> LaptopStats {
         let registry = registryProperties()
         let description = powerSourceSnapshot()
 

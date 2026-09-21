@@ -5,15 +5,22 @@ import CoreGraphics
 @testable import VideoEngine
 
 /// Present pass: layer/target format selection and the fullscreen-triangle passthrough (no-dither identity).
-@Suite("Present renderer + layer format")
+@Suite("Present renderer + layer format", .enabled(if: Hardware.hasRenderPipeline, "requires a Metal GPU"))
 struct PresentRendererTests {
-    @Test("EDR metadata is built only when both HDR SEI attachments are present")
-    func edrMetadataMapping() {
+    @Test("EDR metadata needs both HDR SEI attachments")
+    func edrMetadataNeedsBothAttachments() {
         let mdcv = Data(count: 24)   // ST 2086 mastering display colour volume
         let cll = Data(count: 4)     // content light level (MaxCLL/MaxFALL)
-        #expect(MetalVideoPresenter.edrMetadata(masteringDisplay: mdcv, contentLight: cll) != nil)
         #expect(MetalVideoPresenter.edrMetadata(masteringDisplay: nil, contentLight: cll) == nil)
         #expect(MetalVideoPresenter.edrMetadata(masteringDisplay: mdcv, contentLight: nil) == nil)
+        #expect(MetalVideoPresenter.edrMetadata(masteringDisplay: nil, contentLight: nil) == nil)
+    }
+
+    @Test("EDR metadata is built when both HDR SEI attachments are present",
+          .enabled(if: Hardware.hasEDRMetadata, "requires a platform that builds CAEDRMetadata"))
+    func edrMetadataBuiltFromBothAttachments() {
+        #expect(MetalVideoPresenter.edrMetadata(masteringDisplay: Data(count: 24),
+                                                contentLight: Data(count: 4)) != nil)
     }
 
     @Test("an HDR presenter tags the layer PQ + EDR; SDR stays sRGB")

@@ -1,0 +1,12 @@
+// Local, machine-specific build settings. Copy to `Local.xcconfig` (gitignored) and fill in.
+//
+// The iOS app cannot use the self-signed identity the Mac app builds with — iOS devices only run
+// code signed by an Apple-issued certificate. A free personal team works; it provisions builds that
+// run on your own devices for seven days at a time.
+//
+// Find the identifier in Xcode under Settings → Accounts → (your account) → Manage Certificates,
+// or with: xcrun security find-identity -v -p codesigning
+//
+// Set it here rather than in Xcode's Signing & Capabilities tab: that tab writes the identifier
+// into Asteria.xcodeproj, which is committed, and the identifier is personal information.
+ASTERIA_DEVELOPMENT_TEAM =

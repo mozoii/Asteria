@@ -1,4 +1,3 @@
-import AppKit
 import AsteriaKit
 
 extension SettingsEditor {
@@ -22,19 +21,21 @@ extension SettingsEditor {
     }
 
     static func detectCapabilities() -> StreamCapabilities {
-        let decoder = DecoderCapabilities.probe(hdrDisplay: mainDisplaySupportsEDR())
+        let decoder = DecoderCapabilities.probe(hdrDisplay: DisplayProbe.mainDisplaySupportsEDR)
         // Only families the product negotiates are offered; the rest stay visible but greyed out.
         var codecs: [CodecPreference] = []
         for codec in StreamPlan.negotiableCodecs where codec != .auto {
             if decoderSupports(codec, decoder) { codecs.append(codec) }
         }
-        let (size, refresh) = mainDisplayMode()
+        let size = DisplayProbe.mainDisplayPixelSize
+        let refresh = DisplayProbe.mainDisplayRefreshHz
         return StreamCapabilities.make(
             codecs: codecs,
             supportsTenBit: decoder.hevcMain10 || decoder.av1Main10,
             supportsHDR: decoder.supportsHDR,
             displaySize: size,
-            displayRefreshHz: refresh
+            displayRefreshHz: refresh,
+            limitPresetsToDisplay: DisplayProbe.limitsPresetsToPanel
         )
     }
 
@@ -46,21 +47,6 @@ extension SettingsEditor {
         case .av1: return decoder.av1
         case .auto: return true
         }
-    }
-
-    private static func mainDisplayMode() -> (PixelSize?, Int?) {
-        guard let screen = NSScreen.main else { return (nil, nil) }
-        let scale = screen.backingScaleFactor
-        let size = PixelSize(
-            width: Int(screen.frame.width * scale),
-            height: Int(screen.frame.height * scale)
-        )
-        let refresh = screen.maximumFramesPerSecond
-        return (size, refresh > 0 ? refresh : nil)
-    }
-
-    private static func mainDisplaySupportsEDR() -> Bool {
-        (NSScreen.main?.maximumPotentialExtendedDynamicRangeColorComponentValue ?? 1) > 1
     }
 
     #if DEBUG

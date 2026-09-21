@@ -14,18 +14,26 @@ public final class CoreAudioRenderer: AudioRenderer, @unchecked Sendable {
     /// device's supported range. Smaller buffer → PCM waits less in the ring for the next render callback.
     static let preferredBufferFrames: UInt32 = 128
 
-    private let engine = AVAudioEngine()
-    private let lock = NSLock()
+    let engine = AVAudioEngine()
+    let lock = NSLock()
     private var sourceNode: AVAudioSourceNode?
     private var sourceFormat: AVAudioFormat?
     private var ring: PCMRingBuffer?
     private var scratch: UnsafeMutableBufferPointer<Float>?
     private var configObserver: NSObjectProtocol?
-    private var running = false
-    private var appliedBufferFrames: UInt32 = 0
-    private var bufferSizeListener: AudioObjectPropertyListenerBlock?
-    private var listenerDevice: AudioDeviceID?
-    private let bufferSizeQueue = DispatchQueue(label: "CoreAudioRenderer.bufferSize")
+    var running = false
+    #if os(macOS)
+    var appliedBufferFrames: UInt32 = 0
+    var bufferSizeListener: AudioObjectPropertyListenerBlock?
+    var listenerDevice: AudioDeviceID?
+    let bufferSizeQueue = DispatchQueue(label: "CoreAudioRenderer.bufferSize")
+    #else
+    /// `AVAudioSession` interruption (call, Siri) and route-change observers; interruptions stop the
+    /// engine without raising a configuration change, so the engine restart has to be driven from here.
+    var sessionObservers: [NSObjectProtocol] = []
+    /// Channel count the stream negotiated, re-requested from the session whenever the route changes.
+    var requestedChannelCount = 0
+    #endif
 
     public init() {}
 
@@ -33,6 +41,8 @@ public final class CoreAudioRenderer: AudioRenderer, @unchecked Sendable {
         guard let layout = AVAudioChannelLayout(layoutTag: format.layoutTag) else {
             throw Failure.unsupportedFormat(format.channelCount)
         }
+        // iOS reports a zero-channel output node until its session is active, so this must precede the preflight.
+        try prepareAudioSession(format: format)
         // No output device → connecting throws an uncatchable NSException; pre-flight and bail cleanly instead.
         guard engine.outputNode.outputFormat(forBus: 0).channelCount > 0 else { throw Failure.noOutputDevice }
 
@@ -64,8 +74,7 @@ public final class CoreAudioRenderer: AudioRenderer, @unchecked Sendable {
             try engine.start()
         } catch {
             engine.detach(node)
-            removeBufferSizeListener()
-            appliedBufferFrames = 0
+            releasePlatformAudio()
             scratch.deallocate()
             throw Failure.engineStartFailed(String(describing: error))
         }
@@ -81,87 +90,12 @@ public final class CoreAudioRenderer: AudioRenderer, @unchecked Sendable {
         }
     }
 
-    private func handleConfigurationChange() {
+    func handleConfigurationChange() {
         lock.lock(); defer { lock.unlock() }
         guard running, let node = sourceNode, let sourceFormat else { return }
         engine.connect(node, to: engine.mainMixerNode, format: sourceFormat)
         applyPreferredBufferSize()
         try? engine.start()
-    }
-
-    /// Shrink the output device's I/O buffer toward `preferredBufferFrames`, clamped to its range.
-    /// `…BufferFrameSize` is device-global and last-writer-wins, so `observeBufferFrameSize` defends it.
-    private func applyPreferredBufferSize() {
-        guard let device = currentOutputDevice(), let range = bufferFrameSizeRange(of: device) else { return }
-        var frames = Self.clampedBufferFrames(target: Self.preferredBufferFrames,
-                                              min: UInt32(range.mMinimum), max: UInt32(range.mMaximum))
-        var addr = Self.bufferFrameSizeAddress
-        AudioObjectSetPropertyData(device, &addr, 0, nil, UInt32(MemoryLayout<UInt32>.size), &frames)
-        appliedBufferFrames = bufferFrameSize(of: device) ?? frames
-        observeBufferFrameSize(on: device)
-    }
-
-    private static let bufferFrameSizeAddress = AudioObjectPropertyAddress(
-        mSelector: kAudioDevicePropertyBufferFrameSize, mScope: kAudioObjectPropertyScopeGlobal,
-        mElement: kAudioObjectPropertyElementMain)
-
-    private func currentOutputDevice() -> AudioDeviceID? {
-        guard let unit = engine.outputNode.audioUnit else { return nil }
-        var device = AudioDeviceID(0)
-        var size = UInt32(MemoryLayout<AudioDeviceID>.size)
-        guard AudioUnitGetProperty(unit, kAudioOutputUnitProperty_CurrentDevice,
-                                   kAudioUnitScope_Global, 0, &device, &size) == noErr, device != 0 else { return nil }
-        return device
-    }
-
-    private func bufferFrameSizeRange(of device: AudioDeviceID) -> AudioValueRange? {
-        var range = AudioValueRange()
-        var size = UInt32(MemoryLayout<AudioValueRange>.size)
-        var addr = AudioObjectPropertyAddress(mSelector: kAudioDevicePropertyBufferFrameSizeRange,
-                                              mScope: kAudioObjectPropertyScopeGlobal,
-                                              mElement: kAudioObjectPropertyElementMain)
-        guard AudioObjectGetPropertyData(device, &addr, 0, nil, &size, &range) == noErr else { return nil }
-        return range
-    }
-
-    private func bufferFrameSize(of device: AudioDeviceID) -> UInt32? {
-        var frames = UInt32(0)
-        var size = UInt32(MemoryLayout<UInt32>.size)
-        var addr = Self.bufferFrameSizeAddress
-        guard AudioObjectGetPropertyData(device, &addr, 0, nil, &size, &frames) == noErr else { return nil }
-        return frames
-    }
-
-    /// Watch for another client enlarging the shared buffer and re-apply our size. The callback runs on a
-    /// private queue and tries the lock, so teardown never deadlocks against an in-flight notification.
-    private func observeBufferFrameSize(on device: AudioDeviceID) {
-        guard listenerDevice != device else { return }
-        removeBufferSizeListener()
-        var addr = Self.bufferFrameSizeAddress
-        let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
-            self?.reassertBufferFrameSize(on: device)
-        }
-        guard AudioObjectAddPropertyListenerBlock(device, &addr, bufferSizeQueue, block) == noErr else { return }
-        bufferSizeListener = block
-        listenerDevice = device
-    }
-
-    private func removeBufferSizeListener() {
-        guard let device = listenerDevice, let block = bufferSizeListener else { return }
-        var addr = Self.bufferFrameSizeAddress
-        AudioObjectRemovePropertyListenerBlock(device, &addr, bufferSizeQueue, block)
-        bufferSizeListener = nil
-        listenerDevice = nil
-    }
-
-    private func reassertBufferFrameSize(on device: AudioDeviceID) {
-        guard lock.try() else { return }   // best-effort; skip while start/stop/config holds the lock
-        defer { lock.unlock() }
-        guard running, listenerDevice == device, let current = bufferFrameSize(of: device),
-              Self.shouldReassertBuffer(current: current, applied: appliedBufferFrames) else { return }
-        var frames = appliedBufferFrames
-        var addr = Self.bufferFrameSizeAddress
-        AudioObjectSetPropertyData(device, &addr, 0, nil, UInt32(MemoryLayout<UInt32>.size), &frames)
     }
 
     static func shouldReassertBuffer(current: UInt32, applied: UInt32) -> Bool {
@@ -184,8 +118,7 @@ public final class CoreAudioRenderer: AudioRenderer, @unchecked Sendable {
     public func stop() {
         lock.lock(); defer { lock.unlock() }
         running = false
-        removeBufferSizeListener()
-        appliedBufferFrames = 0
+        releasePlatformAudio()
         if let configObserver { NotificationCenter.default.removeObserver(configObserver) }
         configObserver = nil
         engine.stop()

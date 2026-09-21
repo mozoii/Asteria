@@ -5,7 +5,7 @@ import CoreVideo
 @testable import VideoEngine
 
 /// Offscreen CSC: NV12 → rgba16Float via BT.709 limited-range kernel; tests verify YCbCr→RGB math.
-@Suite("YUV→RGB renderer (offscreen CSC)")
+@Suite("YUV→RGB renderer (offscreen CSC)", .enabled(if: Hardware.hasRenderPipeline, "requires a Metal GPU"))
 struct YUVToRGBRendererTests {
 
     /// Solid-colour NV12 (video-range 4:2:0 biplanar) pixel buffer, Metal-compatible.

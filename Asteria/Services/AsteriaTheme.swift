@@ -44,25 +44,34 @@ struct ControllerHint: Identifiable {
     let label: String
 }
 
-/// Bottom bar of controller button hints — shown only while a controller is connected.
+/// Bottom bar of controller button hints — shown only while a connected controller has been used.
+/// Connection alone isn't enough: the iOS Simulator reports a phantom MFi pad with no physical
+/// controller anywhere. A pad the user has pressed is a pad the user is navigating with.
 struct ControllerHintBar: View {
     let hints: [ControllerHint]
     @State private var controller: GCController?
+    @ObservedObject private var activity = ControllerActivity.shared
 
     var body: some View {
         Group {
-            if isRunningInPreview || controller != nil {
-                HStack(spacing: 22) {
-                    ForEach(hints) { hint in
-                        HStack(spacing: 7) {
-                            ControllerGlyphView(glyph: hint.glyph, controller: controller)
-                            Text(hint.label).font(.caption).foregroundStyle(.secondary)
+            if isRunningInPreview || (controller != nil && activity.hasInput) {
+                // Scrolls rather than wrapping: a phone can't fit five prompts, and a hyphenated
+                // "Sec-tion" reads worse than one that runs off the edge.
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 22) {
+                        ForEach(hints) { hint in
+                            HStack(spacing: 7) {
+                                ControllerGlyphView(glyph: hint.glyph, controller: controller)
+                                Text(hint.label).font(.caption).foregroundStyle(.secondary)
+                                    .fixedSize()
+                            }
                         }
+                        Spacer(minLength: 0)
                     }
-                    Spacer(minLength: 0)
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 12)
                 }
-                .padding(.horizontal, 28)
-                .padding(.vertical, 12)
+                .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
                 .background(.black.opacity(0.3))
             }
         }
@@ -83,8 +92,27 @@ struct ControllerHintBar: View {
         }
     }
 
+    /// Same test as `ControllerNavReader`: only a pad with a full layout can drive the prompts shown.
     private func refreshController() {
-        controller = GCController.current ?? GCController.controllers().first
+        controller = GCController.controllers().first { $0.extendedGamepad != nil }
+        if controller == nil { activity.reset() }
+    }
+}
+
+/// Whether any connected gamepad has produced input since it connected. Shared across screens
+/// because each one owns its own nav reader and hint bar, and the answer is about the pad, not the
+/// screen.
+@MainActor
+final class ControllerActivity: ObservableObject {
+    static let shared = ControllerActivity()
+    @Published private(set) var hasInput = false
+
+    func noteInput() {
+        if !hasInput { hasInput = true }
+    }
+
+    func reset() {
+        if hasInput { hasInput = false }
     }
 }
 

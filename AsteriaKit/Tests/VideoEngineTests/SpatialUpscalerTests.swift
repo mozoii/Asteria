@@ -3,7 +3,7 @@ import Metal
 @testable import VideoEngine
 
 /// Spatial upscaler: MetalFX scales CSC output to target size; headless tests prove correct scaling and flat-color preservation.
-@Suite("Spatial upscaler (MetalFX)")
+@Suite("Spatial upscaler (MetalFX)", .enabled(if: Hardware.hasMetalFX, "requires MetalFX hardware"))
 struct SpatialUpscalerTests {
     static func filledTexture(_ context: MetalRenderContext, width: Int, height: Int, value: Float16,
                               usage: MTLTextureUsage) throws -> MTLTexture {

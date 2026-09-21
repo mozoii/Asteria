@@ -24,6 +24,17 @@ struct HostPickerView: View {
 
     private var highlight: FocusTarget? { cursor.highlight }
 
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    /// 28pt of air each side costs a phone most of a row's width.
+    private var shellGutter: CGFloat { isCompact ? 14 : 28 }
+    private var isCompact: Bool {
+        #if os(macOS)
+        false
+        #else
+        horizontalSizeClass == .compact
+        #endif
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             header
@@ -93,6 +104,9 @@ struct HostPickerView: View {
         }
     }
 
+    /// Row dividers start where the row text does: leading inset, badge, badge-to-text gap.
+    private var dividerInset: CGFloat { HostRow.leadingInset(isCompact: isCompact) + 42 + 14 }
+
     private var isFirstRun: Bool { !store.hosts.contains { $0.isPaired } }
 
     private var onlineCount: Int { store.hosts.filter { store.availability(for: $0) == .online }.count }
@@ -135,15 +149,22 @@ struct HostPickerView: View {
             .help("Settings")
             .controllerFocusRing(highlight == .settings, radius: 8)
             Button { showingAdd = true } label: {
-                Label("Add a PC", systemImage: "plus")
-                    .font(.callout.weight(.semibold))
-                    .padding(.horizontal, 14).padding(.vertical, 8)
+                Group {
+                    if isCompact {
+                        Image(systemName: "plus")
+                    } else {
+                        Label("Add a PC", systemImage: "plus")
+                    }
+                }
+                .font(.callout.weight(.semibold))
+                .padding(.horizontal, isCompact ? 12 : 14).padding(.vertical, 8)
             }
+            .accessibilityLabel("Add a PC")
             .buttonStyle(.plain)
             .background(AsteriaTheme.accent, in: .capsule)
             .controllerFocusRing(highlight == .add, radius: 18)
         }
-        .padding(.horizontal, 28)
+        .padding(.horizontal, shellGutter)
         .padding(.vertical, 18)
     }
 
@@ -155,10 +176,10 @@ struct HostPickerView: View {
                 VStack(spacing: 0) {
                     ForEach(Array(orderedHosts.enumerated()), id: \.element.id) { index, host in
                         if index > 0 {
-                            Divider().overlay(Color.white.opacity(0.07)).padding(.leading, 74)
+                            Divider().overlay(Color.white.opacity(0.07)).padding(.leading, dividerInset)
                         }
                         HostRow(host: host, availability: store.availability(for: host),
-                                isFocused: highlight == .host(host.id)) {
+                                isFocused: highlight == .host(host.id), isCompact: isCompact) {
                             onSelect(host)
                         }
                         .contextMenu {
@@ -166,8 +187,8 @@ struct HostPickerView: View {
                             Button("Forget this PC", role: .destructive) { Task { await store.forget(host) } }
                         }
                     }
-                    Divider().overlay(Color.white.opacity(0.07)).padding(.leading, 74)
-                    AddHostRow {
+                    Divider().overlay(Color.white.opacity(0.07)).padding(.leading, dividerInset)
+                    AddHostRow(isCompact: isCompact) {
                         showingAdd = true
                     }
                 }
@@ -176,7 +197,7 @@ struct HostPickerView: View {
                     RoundedRectangle(cornerRadius: AsteriaTheme.cardCorner, style: .continuous)
                         .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
                 }
-                .padding(28)
+                .padding(shellGutter)
             }
         }
     }
@@ -213,7 +234,7 @@ struct HostPickerView: View {
             }
         }
         .padding(24)
-        .frame(width: 420)
+        .frame(maxWidth: 420)
     }
 
     private func submitManual() {
@@ -240,7 +261,7 @@ struct HostPickerView: View {
             }
         }
         .padding(24)
-        .frame(width: 420)
+        .frame(maxWidth: 420)
     }
 
     private func beginRename(_ host: HostRecord) {
@@ -261,7 +282,14 @@ private struct HostRow: View {
     let host: HostRecord
     let availability: HostAvailability
     let isFocused: Bool
+    /// A phone can't fit the name, the paired chip, the address, the host software and the status
+    /// badge on one line. The name is what the user is choosing between, so it keeps the width.
+    var isCompact = false
     var action: () -> Void
+
+    /// Shared with the Add row so its icon and title line up with the hosts above it.
+    static func leadingInset(isCompact: Bool) -> CGFloat { isCompact ? 16 : 28 }
+    static func trailingInset(isCompact: Bool) -> CGFloat { isCompact ? 12 : 20 }
 
     var body: some View {
         Button(action: action) {
@@ -278,11 +306,12 @@ private struct HostRow: View {
                             if host.isPaired {
                                 HStack(spacing: 3) {
                                     Image(systemName: "checkmark")
-                                    Text("Paired")
+                                    if !isCompact { Text("Paired") }
                                 }
                                 .font(.caption2.weight(.medium))
                                 .foregroundStyle(AsteriaTheme.accent)
                                 .help("Paired")
+                                .accessibilityLabel("Paired")
                             }
                         }
                         Text(host.address).font(.caption).foregroundStyle(.secondary).lineLimit(1)
@@ -294,18 +323,21 @@ private struct HostRow: View {
                         .lineLimit(1)
                     }
                     Spacer(minLength: 12)
-                    AvailabilityBadge(availability: availability)
+                    AvailabilityBadge(availability: availability, isCompact: isCompact)
                     Image(systemName: "chevron.right")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(isFocused ? AsteriaTheme.accent : .secondary)
                         .offset(x: isFocused ? 3 : 0)
                 }
-                .padding(.leading, 28)
-                .padding(.trailing, 20)
+                .padding(.leading, Self.leadingInset(isCompact: isCompact))
+                .padding(.trailing, Self.trailingInset(isCompact: isCompact))
             }
             .frame(height: 78)
             .frame(maxWidth: .infinity)
             .background(isFocused ? AsteriaTheme.surfaceFocused : .clear)
+            // A clear background takes no hits, so a tap or long-press on the row's empty stretch
+            // between the address and the status badge would otherwise do nothing.
+            .contentShape(.rect)
             .animation(.spring(response: 0.28, dampingFraction: 0.74), value: isFocused)
         }
         .buttonStyle(.plain)
@@ -333,6 +365,7 @@ private struct DeviceBadge: View {
 }
 
 private struct AddHostRow: View {
+    var isCompact = false
     var action: () -> Void
 
     var body: some View {
@@ -350,9 +383,11 @@ private struct AddHostRow: View {
                     .font(.subheadline.weight(.semibold))
                 Spacer()
             }
-            .padding(.leading, 28).padding(.trailing, 20)
+            .padding(.leading, HostRow.leadingInset(isCompact: isCompact))
+            .padding(.trailing, HostRow.trailingInset(isCompact: isCompact))
             .frame(height: 64)
             .frame(maxWidth: .infinity)
+            .contentShape(.rect)
         }
         .buttonStyle(.plain)
     }
@@ -361,16 +396,19 @@ private struct AddHostRow: View {
 /// Status badge with pulse animation on online hosts.
 private struct AvailabilityBadge: View {
     let availability: HostAvailability
+    /// The status word costs a phone most of the room the PC's name needs; the dot still carries it.
+    var isCompact = false
     @State private var pulse = false
 
     var body: some View {
         HStack(spacing: 6) {
             Circle().fill(color).frame(width: 8, height: 8)
                 .shadow(color: color.opacity(pulse ? 0.8 : 0.0), radius: 4)
-            Text(HostStatusStyle.label(availability)).font(.caption2.weight(.medium))
+            if !isCompact { Text(HostStatusStyle.label(availability)).font(.caption2.weight(.medium)) }
         }
         .foregroundStyle(.secondary)
-        .padding(.horizontal, 10).padding(.vertical, 5)
+        .accessibilityLabel(HostStatusStyle.label(availability))
+        .padding(.horizontal, isCompact ? 7 : 10).padding(.vertical, 5)
         .background(AsteriaTheme.surface, in: .capsule)
         .overlay(Capsule().strokeBorder(Color.white.opacity(0.06), lineWidth: 1))
         .onChange(of: availability, initial: true) { _, newAvailability in

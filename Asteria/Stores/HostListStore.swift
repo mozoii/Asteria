@@ -35,8 +35,7 @@ final class HostListStore {
             apply(try await loadedRoster)
         } catch {
             loadError = "Couldn't load saved PCs: \(error.localizedDescription) "
-                + "Restore or remove ~/Library/Application Support/Asteria/library.json, "
-                + "then relaunch Asteria."
+                + "Restore or remove \(PlatformCopy.libraryPathHint), then relaunch Asteria."
         }
     }
 

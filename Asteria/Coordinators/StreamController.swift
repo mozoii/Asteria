@@ -1,5 +1,4 @@
 import Foundation
-import AppKit
 import SwiftUI
 import Observation
 import os
@@ -107,6 +106,8 @@ final class StreamController {
     private let inputPreferences: InputPreferences
     private let overlayPreferences: OverlayPreferences
     private var screenSleepGuard = ScreenSleepGuard()
+    /// Whether Asteria is frontmost, for "mute when inactive"; what that means is platform-specific.
+    private let activity = AppActivityObserver()
     private let identities: ClientIdentityVault
     private let clipboard: any ClipboardSource
 
@@ -126,8 +127,6 @@ final class StreamController {
     private var audioRenderer: CoreAudioRenderer?
     /// Manual mute toggled by the in-stream bind or overlay menu; independent of inactive-muting.
     private(set) var audioMuted = false
-    /// App activate/resignActive observers driving inactive-muting; empty when the feature is off.
-    private var activeObservers: [NSObjectProtocol] = []
     private var eventsTask: Task<Void, Never>?
     private var statsTask: Task<Void, Never>?
     /// True while a connection attempt is in flight, so a repeated `connect()` can't start a
@@ -230,9 +229,9 @@ final class StreamController {
             streamPixelSize = PixelSize(width: plan.configuration.width,
                                         height: plan.configuration.height)
             streamResolution = "\(plan.configuration.width)×\(plan.configuration.height)"
-            // Live per-stream query, not the launch-time NSScreen.main probe: that snapshots whichever
-            // screen had focus (a 120 Hz secondary caps a 240 Hz panel). The link clamps to the hosting display.
-            let displayMaxHz = NSScreen.screens.map(\.maximumFramesPerSecond).max()
+            // Live per-stream query, not the launch-time probe: that snapshots whichever screen had
+            // focus (a 120 Hz secondary caps a 240 Hz panel). The link clamps to the hosting display.
+            let displayMaxHz = DisplayProbe.maximumRefreshHz
             let sink = PresenterVideoSink(
                 size: size,
                 options: PresentOptions(streamFps: plan.configuration.fps, displayMaxHz: displayMaxHz,
@@ -305,23 +304,13 @@ final class StreamController {
     /// When inactive-muting is enabled, observe app activation and silence stream audio while Asteria isn't frontmost.
     private func startInactiveMutingIfEnabled() {
         guard settings.muteWhenInactive else { return }
-        let nc = NotificationCenter.default
-        activeObservers = [
-            nc.addObserver(forName: NSApplication.didResignActiveNotification, object: nil, queue: .main) {
-                [weak self] _ in
-                Task { @MainActor in self?.applyAudioMute() }
-            },
-            nc.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main) {
-                [weak self] _ in
-                Task { @MainActor in self?.applyAudioMute() }
-            },
-        ]
+        activity.start { [weak self] in self?.applyAudioMute() }
         applyAudioMute()   // honor the current state immediately
     }
 
     /// Manual mute + inactive-mute combine: either keeps the renderer silent.
     func applyAudioMute() {
-        let muted = audioMuted || (settings.muteWhenInactive && !NSApp.isActive)
+        let muted = audioMuted || (settings.muteWhenInactive && !activity.isActive)
         audioRenderer?.setMuted(muted)
     }
 
@@ -336,8 +325,7 @@ final class StreamController {
     }
 
     private func stopInactiveMuting() {
-        activeObservers.forEach(NotificationCenter.default.removeObserver)
-        activeObservers.removeAll()
+        activity.stop()
     }
 
     /// Stops the local session and releases app resources without deciding the next phase (the host session keeps
@@ -570,7 +558,7 @@ final class StreamController {
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
                 let sampleTime = CACurrentMediaTime()
-                let localStats = telemetry.sample(at: sampleTime)
+                let localStats = await telemetry.sample(at: sampleTime)
                 let smoothedPower = powerMeter.sample(watts: localStats.appPowerWatts, at: sampleTime)
                 let highPower = powerMeter.isHighPower
                 let stats = LaptopStats(hasBattery: localStats.hasBattery,

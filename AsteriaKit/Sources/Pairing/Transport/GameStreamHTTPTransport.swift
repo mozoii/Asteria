@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 import Security
 import CryptoKit
@@ -14,6 +15,9 @@ import CryptoKit
 /// The same certificate+key presented as raw PEM works (verified against a live Sunshine host).
 /// Server trust is pinned via curl's `--pinnedpubkey` (SHA-256 of the pinned certificate's
 /// SubjectPublicKeyInfo), so the MITM protection matches the previous full-certificate pin.
+///
+/// iOS has no `Process`, and its data-protection keychain does not have the macOS 27 defect, so it
+/// uses a `URLSession` transport instead — see `GameStreamHTTPTransport+iOS.swift`.
 public final class GameStreamHTTPTransport: GameStreamTransport, @unchecked Sendable {
     public let host: String
     public let httpPort: UInt16
@@ -63,7 +67,7 @@ public final class GameStreamHTTPTransport: GameStreamTransport, @unchecked Send
     public func setPinnedServerCertificate(_ der: [UInt8]?) {
         lock.withLock {
             pinnedServerCertDER = der.map { Data($0) }
-            pinnedPublicKeyHash = der.flatMap { Self.publicKeyPinHash(for: Data($0)) }
+            pinnedPublicKeyHash = der.flatMap { ServerCertificatePin.publicKeyPinHash(for: Data($0)) }
         }
     }
 
@@ -77,56 +81,9 @@ public final class GameStreamHTTPTransport: GameStreamTransport, @unchecked Send
         return try await perform(url: url, method: "POST", body: body, path: path, query: query)
     }
 
-    /// The full-certificate pin equality predicate, retained for reference and tests. The curl path
-    /// pins the server's public key instead of the full certificate.
-    static func serverCertificateMatchesPin(presented: Data?, pinned: Data?) -> Bool {
-        guard let presented, let pinned else { return false }
-        return presented == pinned
-    }
-
-    /// SHA-256 (base64) of the pinned certificate's SubjectPublicKeyInfo — exactly what curl's
-    /// `--pinnedpubkey` hashes on macOS (verified against a live host: a mismatched pin makes curl
-    /// exit 90).
-    static func publicKeyPinHash(for certificateDER: Data) -> String? {
-        guard let certificate = SecCertificateCreateWithData(nil, certificateDER as CFData),
-              let key = SecCertificateCopyKey(certificate) else { return nil }
-        var error: Unmanaged<CFError>?
-        guard let pkcs1 = SecKeyCopyExternalRepresentation(key, &error) as Data? else { return nil }
-        let spki = spkiWrappingRSA(pkcs1)
-        return Data(SHA256.hash(data: spki)).base64EncodedString()
-    }
-
-    /// Wrap a PKCS#1 RSAPublicKey in the SubjectPublicKeyInfo structure curl hashes:
-    /// `SEQUENCE { SEQUENCE { OID rsaEncryption, NULL }, BIT STRING { pkcs1 } }`.
-    private static func spkiWrappingRSA(_ pkcs1: Data) -> Data {
-        let algorithm = Data([
-            0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d,
-            0x01, 0x01, 0x01, 0x05, 0x00,
-        ])
-        let bitString = Data([0x03]) + derLength(1 + pkcs1.count) + Data([0x00]) + pkcs1
-        return Data([0x30]) + derLength(algorithm.count + bitString.count) + algorithm + bitString
-    }
-
-    private static func derLength(_ length: Int) -> Data {
-        if length < 0x80 { return Data([UInt8(length)]) }
-        var bytes = [UInt8]()
-        var value = length
-        while value > 0 {
-            bytes.insert(UInt8(value & 0xff), at: 0)
-            value >>= 8
-        }
-        return Data([0x80 | UInt8(bytes.count)]) + Data(bytes)
-    }
-
     private func makeURL(secure: Bool, path: String, query: [URLQueryItem]) throws -> URL {
-        var components = URLComponents()
-        components.scheme = secure ? "https" : "http"
-        components.host = host
-        components.port = Int(secure ? httpsPort : httpPort)
-        components.path = "/" + path
-        components.queryItems = query
-        guard let url = components.url else { throw PairingError.transport("invalid URL") }
-        return url
+        try GameStreamURL.make(host: host, secure: secure, httpPort: httpPort,
+                               httpsPort: httpsPort, path: path, query: query)
     }
 
     private func perform(
@@ -244,19 +201,8 @@ public final class GameStreamHTTPTransport: GameStreamTransport, @unchecked Send
             return .failure(PairingError.httpStatus(code))
         }
         let data = (try? Data(contentsOf: outputFile)) ?? Data()
-        captureIfEnabled(data, path: path, query: query)
+        TransportCapture.captureIfEnabled(data, path: path, query: query)
         return .success(data)
     }
-
-    #if DEBUG
-    private static func captureIfEnabled(_ data: Data, path: String, query: [URLQueryItem]) {
-        guard let dir = ProcessInfo.processInfo.environment["ASTERIA_CAPTURE_DIR"] else { return }
-        let phrase = query.first { $0.name == "phrase" }?.value
-        let name = phrase.map { "\(path)-\($0)" } ?? path
-        try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
-        try? data.write(to: URL(fileURLWithPath: dir).appendingPathComponent("\(name).xml"))
-    }
-    #else
-    private static func captureIfEnabled(_ data: Data, path: String, query: [URLQueryItem]) {}
-    #endif
 }
+#endif

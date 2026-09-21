@@ -131,6 +131,7 @@ final class ControllerNavReader: ObservableObject {
     }
 
     private func emit(_ dir: Dir) {
+        ControllerActivity.shared.noteInput()
         pending.append(dir)
         tick &+= 1
     }
@@ -150,6 +151,35 @@ extension ControllerNavReader.Dir {
 }
 
 extension View {
+    /// Arrow keys mirror the d-pad. `onMoveCommand` only exists on macOS and tvOS, so iOS reads the
+    /// four arrows as ordinary key presses, which is the same set of intents by another route.
+    @ViewBuilder fileprivate func arrowKeyNavigation(
+        _ move: @escaping (ControllerNavReader.Dir) -> Void
+    ) -> some View {
+        #if os(macOS)
+        onMoveCommand { direction in
+            switch direction {
+            case .up: move(.up)
+            case .down: move(.down)
+            case .left: move(.left)
+            case .right: move(.right)
+            @unknown default: break
+            }
+        }
+        #else
+        onKeyPress(keys: [.upArrow, .downArrow, .leftArrow, .rightArrow]) { press in
+            switch press.key {
+            case .upArrow: move(.up)
+            case .downArrow: move(.down)
+            case .leftArrow: move(.left)
+            case .rightArrow: move(.right)
+            default: return .ignored
+            }
+            return .handled
+        }
+        #endif
+    }
+
     /// Wires a screen's nav lifecycle and mirrors the d-pad to the keyboard (arrows move, Return activates).
     func controllerNavigation(_ nav: ControllerNavReader,
                               focusFirst: @escaping () -> Void,
@@ -162,15 +192,7 @@ extension View {
             .onChange(of: nav.isConnected) { _, connected in if connected { focusFirst() } }
             .focusable()
             .focusEffectDisabled()
-            .onMoveCommand { direction in
-                switch direction {
-                case .up: move(.up)
-                case .down: move(.down)
-                case .left: move(.left)
-                case .right: move(.right)
-                @unknown default: break
-                }
-            }
+            .arrowKeyNavigation(move)
             .onKeyPress(.return) { move(.activate); return .handled }
     }
 }
